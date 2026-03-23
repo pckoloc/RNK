@@ -3,53 +3,259 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kitap Kulübü - Külliyat Sürümü</title>
+    <title>Külliyat Canlı Takip - Profesyonel Sürüm</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Noto+Serif:wght@400;700&display=swap" rel="stylesheet">
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 800px; margin: auto; padding: 20px; line-height: 1.6; background-color: #f4f4f9; }
-        .container { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .btn { padding: 10px 20px; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; margin-right: 10px; transition: 0.2s; margin-bottom: 10px;}
-        .btn-danger { background-color: #dc3545; }
-        .btn-warning { background-color: #ff9800; color: #fff; }
-        .btn-success { background-color: #28a745; }
-        .btn:disabled { background-color: #ccc; cursor: not-allowed; }
+        /* --- GLOBAL STİLLER (Büyülü Atmosfer) --- */
+        :root {
+            --bg-color: #0f172a;
+            --container-bg: rgba(255, 255, 255, 0.05);
+            --text-color: #f1f5f9;
+            --primary-color: #f59e0b; /* Amber/Altın */
+            --primary-glow: #fbbf24;
+            --read-text-color: #64748b;
+            --active-bg: rgba(245, 158, 11, 0.2);
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* Giriş animasyonu için */
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- BAŞTAN ÇIKARAN GİRİŞ ANİMASYONU (LOADER) --- */
+        #loadingOverlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-color);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 0.8s ease-out, visibility 0.8s;
+        }
+
+        .spinner {
+            width: 100px;
+            height: 100px;
+            border: 5px solid rgba(255, 255, 255, 0.1);
+            border-top: 5px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite, glowPulse 1.5s infinite alternate;
+            margin-bottom: 20px;
+            box-shadow: 0 0 30px var(--active-bg);
+        }
+
+        #loadingStatus {
+            font-size: 20px;
+            color: var(--primary-color);
+            text-shadow: 0 0 10px var(--active-bg);
+            font-weight: 600;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes glowPulse { from { box-shadow: 0 0 10px var(--active-bg); } to { box-shadow: 0 0 40px var(--primary-color); } }
+
+        /* --- ANA ARAYÜZ --- */
+        #app {
+            display: none; /* Yükleme bitene kadar gizle */
+            flex-direction: column;
+            height: 100%;
+        }
+
+        /* Modern Header (Glassmorphism) */
+        header {
+            background: var(--container-bg);
+            backdrop-filter: blur(10px);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+
+        header h2 { margin: 0; font-weight: 700; color: var(--text-color); font-size: 22px; }
+        header #status { font-weight: 600; font-size: 16px; color: #a3e635; }
+
+        /* --- METİN ALANI (Profesyonel Prompter) --- */
+        #bookDisplay {
+            flex: 1;
+            overflow-y: auto;
+            background: rgba(255, 255, 255, 0.02);
+            padding: 60px 10% 120px 10%; /* Alt boşluk buton için */
+            font-family: 'Noto Serif', serif;
+            font-size: 28px;
+            line-height: 2.3;
+            scroll-behavior: smooth;
+            cursor: text;
+        }
+
+        /* Modern Scrollbar */
+        #bookDisplay::-webkit-scrollbar { width: 8px; }
+        #bookDisplay::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+        #bookDisplay::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+        #bookDisplay::-webkit-scrollbar-thumb:hover { background: var(--primary-color); }
+
+        span { transition: all 0.3s ease; border-radius: 6px; padding: 2px 2px; }
+        .read-text { color: var(--read-text-color); }
         
-        #debugBox { margin-top: 15px; padding: 15px; background: #282c34; color: #4caf50; font-family: monospace; font-size: 18px; border-radius: 5px; min-height: 50px; font-weight: bold;}
-        #bookDisplay { margin-top: 20px; padding: 40px; border: 1px solid #eee; height: 500px; overflow-y: auto; background: #fff; font-size: 24px; line-height: 2.2; border-radius: 8px; cursor: text;}
-        span { transition: all 0.2s; border-radius: 4px; padding: 2px 1px; }
-        .read-text { color: #b0b0b0; }
-        .active-word { background-color: #ffeb3b; padding: 2px 4px; color: black; font-weight: bold; box-shadow: 0 0 10px #ffeb3b; border-radius: 5px;}
+        /* Aktif Kelime Efekti (Büyülü Glow) */
+        .active-word {
+            background-color: var(--active-bg);
+            color: var(--primary-color);
+            font-weight: 700;
+            box-shadow: 0 0 20px var(--primary-color);
+            transform: scale(1.05);
+            display: inline-block;
+        }
+
+        /* Gizli Boxlar (DEBUG) */
+        #debugBox { display: none; }
+
+        /* --- BÜYÜLÜ DİNLEME BUTONU --- */
+        #controls {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            z-index: 20;
+        }
+
+        /* Ana Yuvarlak Buton */
+        .mic-btn {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(0,0,0,0.3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .mic-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 40px var(--primary-glow);
+        }
+
+        /* Mikrofon İkonu */
+        .mic-icon {
+            font-size: 40px;
+            color: #fff;
+        }
+
+        /* Titreme ve Glow Animasyonu (Sessizken) */
+        .mic-btn.idle {
+            animation: buttonIdleShake 3s infinite;
+            background-color: var(--bg-color);
+            border: 2px solid var(--primary-color);
+            box-shadow: 0 0 15px var(--active-bg);
+        }
+        .mic-btn.idle .mic-icon { color: var(--primary-color); }
+
+        /* Dalga Animasyonu (Dinlerken) */
+        .mic-btn.listening::after {
+            content: '';
+            position: absolute;
+            width: 100%; height: 100%;
+            border-radius: 50%;
+            border: 4px solid var(--primary-glow);
+            animation: micWaves 1.5s infinite;
+            opacity: 0;
+        }
+
+        /* Takibi Durdur (Buldum) Tuşu - Neon Style */
+        #followBtn {
+            background-color: rgba(0,0,0,0.5);
+            color: var(--text-color);
+            border: 2px solid var(--primary-color);
+            padding: 12px 25px;
+            border-radius: 20px;
+            margin-left: 20px;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: 0.3s;
+            display: none;
+            backdrop-filter: blur(5px);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        #followBtn:hover {
+            background-color: var(--primary-color);
+            box-shadow: 0 0 20px var(--primary-glow);
+            color: #000;
+        }
+
+        /* --- ANİMASYONLAR --- */
+        @keyframes buttonIdleShake {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            5% { transform: rotate(3deg) scale(1.02); }
+            10% { transform: rotate(-3deg); }
+            15% { transform: rotate(0deg); }
+        }
+
+        @keyframes micWaves {
+            0% { transform: scale(1); opacity: 0.8; }
+            100% { transform: scale(1.6); opacity: 0; }
+        }
+
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>📚 Canlı Takip - Külliyat Sürümü (18 Kitap)</h2>
-    
-    <div id="status" style="margin-bottom: 15px; font-weight: bold; color: #007bff; padding: 15px; background: #e9ecef; border-radius: 5px;">
-        ⏳ Sistem başlatılıyor, kitaplar sunucudan sırayla çekiliyor... Lütfen bekleyin.
+<div id="loadingOverlay">
+    <div class="spinner"></div>
+    <div id="loadingStatus">Tüm Külliyat hafızaya alınıyor... Lütfen bekleyin.</div>
+</div>
+
+<div id="app">
+    <header>
+        <h2>Külliyat Takip</h2>
+        <div id="status">Sunucuyla bağlantı kuruldu.</div>
+    </header>
+
+    <div id="debugBox">Debug</div>
+
+    <div id="bookDisplay">Metin yükleniyor...</div>
+
+    <div id="controls">
+        <button id="listenBtn" class="mic-btn idle" onclick="toggleListening()" disabled>
+            <span class="mic-icon">🎙️</span>
+        </button>
+        <button id="followBtn" onclick="toggleFollow()">🛑 Takibi Durdur</button>
     </div>
-
-    <div>
-        <button class="btn btn-danger" id="listenBtn" onclick="toggleListening()" disabled>🎙️ Dinlemeye Başla</button>
-        <button class="btn btn-warning" id="followBtn" onclick="toggleFollow()" style="display: none;">⏸️ Takibi Durdur (Buldum)</button>
-    </div>
-
-    <div id="debugBox">Duyulan kelimeler anlık olarak buraya düşecek...</div>
-
-    <div id="bookDisplay"><i>Tüm külliyat hafızaya alınıyor... Bu işlem kitap sayısına bağlı olarak 1-2 dakika sürebilir.</i></div>
 </div>
 
 <script>
-    // --- 18 KİTAPLIK LİSTE ---
-    // NOT: Sunucuya yüklemeden önce "Asayı musa.epub" dosyasının adını bilgisayarında "Asayi_musa.epub" yaparsan hata alma riskin ortadan kalkar.
+    // --- 18 KİTAPLIK GÜNCEL LİSTE ---
     const kitapListesi = [
         'DHOrfiDuzeltilmis.epub',
         'MunazaratDuzeltilmis.epub',
         'Muhakmat.epub',
         'ZuhretnurDuzeltilmis.epub',
         'IVEKMUVAZENE.epub',
-        'isicaz.epub',
+        'isicaz.epub', // Senin düzelttiğin isim
         'STasdikDuzeltilmis.epub',
         'kastamonu.epub',
         'Asayi_musa.epub', 
@@ -74,14 +280,16 @@
     let renderedEnd = 0;
     const CHUNK_SIZE = 1000;
 
-    // --- SİTE AÇILIR AÇILMAZ KİTAPLARI OTOMATİK İNDİR ---
+    // --- YENİ BÖLÜM: GERİYE DÜŞME HATA DÜZELTME BAYRAĞI ---
+    let isProgrammaticScrolling = false; // Kod ekranı kaydırırken TRUE olur
+
+    // --- SİTE AÇILIR AÇILMAZ KİTAPLARI OTOMATİK İNDİR VE LOADERI YÖNET ---
     window.onload = async function() {
         let fullText = "";
 
         try {
             for (let i = 0; i < kitapListesi.length; i++) {
-                // Kullanıcıya hangi kitabın yüklendiğini göster
-                document.getElementById('status').innerText = `⏳ İşleniyor (${i + 1} / ${kitapListesi.length}): ${kitapListesi[i]}...`;
+                document.getElementById('loadingStatus').innerText = `⏳ İşleniyor (${i + 1} / ${kitapListesi.length}): ${kitapListesi[i]}...`;
                 
                 let response = await fetch(kitapListesi[i]);
                 if (!response.ok) throw new Error(`${kitapListesi[i]} bulunamadı.`);
@@ -99,9 +307,8 @@
                 }
             }
 
-            document.getElementById('status').innerText = `⏳ Metinler birleştiriliyor ve kelimelere ayrılıyor...`;
+            document.getElementById('loadingStatus').innerText = `✨ Metinler büyüleniyor ve hazırlanıyor...`;
 
-            // Metni Temizle ve Hazırla
             let rawWords = fullText.trim().split(/\s+/);
             wordsArray = rawWords.map((word, index) => {
                 let cleanWord = word.toLocaleLowerCase('tr-TR')
@@ -110,18 +317,25 @@
                 return { original: word, clean: cleanWord, id: index };
             }).filter(w => w.clean.length > 0 || w.original.length > 0);
 
-            // Başlangıç kelimelerini ekrana çiz
             renderedStart = 0;
             renderedEnd = Math.min(wordsArray.length, 1500);
             document.getElementById('bookDisplay').innerHTML = renderHTMLChunk(renderedStart, renderedEnd);
 
-            document.getElementById('status').innerText = `✅ Başarılı! Tüm Külliyat yüklendi. (Toplam ${wordsArray.length.toLocaleString('tr-TR')} kelime)`;
-            document.getElementById('status').style.color = "#28a745";
+            // --- LOADERI KALDIR VE UYGULAMAYI GÖSTER (Sihirli Geçiş) ---
+            const overlay = document.getElementById('loadingOverlay');
+            overlay.style.opacity = '0';
+            overlay.style.visibility = 'hidden';
+            setTimeout(() => {
+                document.getElementById('app').style.display = 'flex';
+                document.body.style.overflow = 'auto'; // Kaydırmayı aç
+            }, 800);
+
+            document.getElementById('status').innerText = `Külliyat Hazır.`;
             document.getElementById('listenBtn').disabled = false;
 
         } catch (error) {
-            document.getElementById('status').innerText = `🔴 Hata: ${error.message} Lütfen dosya isimlerinin kodla birebir aynı olduğundan emin olun.`;
-            document.getElementById('status').style.color = "red";
+            document.getElementById('loadingStatus').innerText = `🔴 Hata: ${error.message}`;
+            document.getElementById('loadingStatus').style.color = "red";
             console.error(error);
         }
     };
@@ -134,11 +348,14 @@
         return html;
     }
 
-    // --- SONSUZ KAYDIRMA ---
+    // --- SONSUZ KAYDIRMA VE MANUEL KAYDIRMA TESPİTİ ---
     const displayDiv = document.getElementById('bookDisplay');
     
     displayDiv.addEventListener('scroll', function() {
-        stopFollowingManual();
+        // --- HATA DÜZELTME: Sadece kullanıcı kaydırırsa takibi durdur ---
+        if (!isProgrammaticScrolling) {
+            stopFollowingManual();
+        }
 
         if (this.scrollTop + this.clientHeight >= this.scrollHeight - 100) {
             if (renderedEnd < wordsArray.length) {
@@ -160,7 +377,7 @@
 
     function stopFollowingManual() {
         if (autoFollow && wordsArray.length > 0 && isListening) {
-            toggleFollow(); 
+            toggleFollow(); // Serbest Moda Geç
         }
     }
 
@@ -170,34 +387,32 @@
         let status = document.getElementById('status');
 
         if (autoFollow) {
-            btn.innerText = "⏸️ Takibi Durdur (Buldum)";
-            btn.className = "btn btn-warning";
-            status.innerText = "🟢 Arama Aktif: Mikrofon açık, takip ediliyor...";
-            status.style.color = "#28a745";
+            btn.innerText = "🛑 Takibi Durdur";
+            status.innerText = "🟢 Dinleniyor ve Takip Ediliyor...";
+            status.style.color = "#a3e635";
             
             if (!isListening) { isListening = true; recognition.start(); }
-            let activeSpan = document.getElementById('w-' + currentIndex);
-            if (activeSpan) activeSpan.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            updateHighlight(true); // Kaldığı yere hemen odaklan
         } else {
             btn.innerText = "▶️ Takibe Devam Et";
-            btn.className = "btn btn-success";
-            status.innerText = "✋ Serbest Mod: Arama ve mikrofon DURDURULDU.";
+            status.innerText = "✋ Arama Durduruldu (Serbest Okuma).";
             status.style.color = "#ff9800";
             
             if (isListening) { isListening = false; recognition.stop(); }
         }
     }
 
-    // --- SES TANIMA VE ARAMA MOTORU ---
+    // --- SES TANIMA VE KONTROL TASARIMI ---
     if ('webkitSpeechRecognition' in window) {
         recognition = new webkitSpeechRecognition();
         recognition.continuous = true;
         recognition.interimResults = true;
         recognition.lang = 'tr-TR';
 
+        const micBtn = document.getElementById('listenBtn');
+
         recognition.onstart = function() {
-            document.getElementById('listenBtn').innerText = "⏹️ Tamamen Kapat";
-            document.getElementById('listenBtn').className = "btn btn-secondary";
+            micBtn.className = "mic-btn listening"; // Büyülü animasyon başlasın
             document.getElementById('followBtn').style.display = "inline-block";
         };
 
@@ -207,30 +422,30 @@
                 currentTranscript += event.results[i][0].transcript;
             }
             if (currentTranscript.trim() !== "") {
-                document.getElementById('debugBox').innerText = "Duyulan: " + currentTranscript;
+                // Debug box gizli ama arkada çalışmaya devam etsin
+                document.getElementById('debugBox').innerText = currentTranscript;
                 if (autoFollow) processSpeech(currentTranscript);
             }
         };
 
         recognition.onend = function() {
+            // Serbest modda değilse mikrofonu açık tutmaya devam et
             if (isListening && autoFollow) recognition.start();
         };
     }
 
     function toggleListening() {
         if (wordsArray.length === 0) return;
+        const micBtn = document.getElementById('listenBtn');
         
         if (isListening || !autoFollow) { 
             isListening = false; autoFollow = true; recognition.stop(); 
-            document.getElementById('listenBtn').innerText = "🎙️ Dinlemeye Başla"; 
-            document.getElementById('listenBtn').className = "btn btn-danger";
+            micBtn.className = "mic-btn idle"; // Sessiz moda dön
             document.getElementById('followBtn').style.display = "none";
-            document.getElementById('status').innerText = "⚪ Sistem tamamen kapatıldı.";
-            document.getElementById('status').style.color = "#007bff";
+            document.getElementById('status').innerText = "Külliyat Hazır.";
+            document.getElementById('status').style.color = "#f1f5f9";
         } else { 
             isListening = true; autoFollow = true; recognition.start(); 
-            document.getElementById('status').innerText = "🟢 Arama Aktif: Konuşan kişi takip ediliyor...";
-            document.getElementById('status').style.color = "#28a745";
         }
     }
 
@@ -248,7 +463,7 @@
 
         if (foundIndex !== -1) {
             currentIndex = foundIndex;
-            updateHighlight();
+            updateHighlight(false); // Takibe devam et
         }
     }
 
@@ -280,7 +495,9 @@
         return false;
     }
 
-    function updateHighlight() {
+    // --- EKRAN ÇİZİMİ VE ODAKLANMA (Büyük Düzeltme) ---
+    function updateHighlight(isManualResume = false) {
+        // Ekran kaydırılıyorsa arayüzü güncelle
         if (currentIndex < renderedStart || currentIndex > renderedEnd - 100) {
             renderedStart = Math.max(0, currentIndex - 300);
             renderedEnd = Math.min(wordsArray.length, currentIndex + 1000);
@@ -298,7 +515,18 @@
 
         let activeSpan = document.getElementById('w-' + currentIndex);
         if (activeSpan) {
-            activeSpan.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // --- HATA DÜZELTME BAŞLANGICI: Bayrağı Kaldır ---
+            isProgrammaticScrolling = true; 
+            
+            // Eğer manuel olarak "Takibe Devam" dediysek daha sert bir kaydırma yap
+            const scrollBlock = isManualResume ? 'center' : 'center'; 
+            
+            activeSpan.scrollIntoView({ behavior: 'smooth', block: scrollBlock });
+
+            // 1 saniye sonra bayrağı indir (Animasyonun bitmesini bekle)
+            setTimeout(() => {
+                isProgrammaticScrolling = false;
+            }, 1000);
         }
     }
 </script>
