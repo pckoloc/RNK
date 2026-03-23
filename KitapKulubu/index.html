@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kitap Kulübü - Külliyat Sürümü</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 800px; margin: auto; padding: 20px; line-height: 1.6; background-color: #f4f4f9; }
+        .container { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .btn { padding: 10px 20px; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; margin-right: 10px; transition: 0.2s; margin-bottom: 10px;}
+        .btn-danger { background-color: #dc3545; }
+        .btn-warning { background-color: #ff9800; color: #fff; }
+        .btn-success { background-color: #28a745; }
+        .btn:disabled { background-color: #ccc; cursor: not-allowed; }
+        
+        #debugBox { margin-top: 15px; padding: 15px; background: #282c34; color: #4caf50; font-family: monospace; font-size: 18px; border-radius: 5px; min-height: 50px; font-weight: bold;}
+        #bookDisplay { margin-top: 20px; padding: 40px; border: 1px solid #eee; height: 500px; overflow-y: auto; background: #fff; font-size: 24px; line-height: 2.2; border-radius: 8px; cursor: text;}
+        span { transition: all 0.2s; border-radius: 4px; padding: 2px 1px; }
+        .read-text { color: #b0b0b0; }
+        .active-word { background-color: #ffeb3b; padding: 2px 4px; color: black; font-weight: bold; box-shadow: 0 0 10px #ffeb3b; border-radius: 5px;}
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>📚 Canlı Takip - Külliyat Sürümü (18 Kitap)</h2>
+    
+    <div id="status" style="margin-bottom: 15px; font-weight: bold; color: #007bff; padding: 15px; background: #e9ecef; border-radius: 5px;">
+        ⏳ Sistem başlatılıyor, kitaplar sunucudan sırayla çekiliyor... Lütfen bekleyin.
+    </div>
+
+    <div>
+        <button class="btn btn-danger" id="listenBtn" onclick="toggleListening()" disabled>🎙️ Dinlemeye Başla</button>
+        <button class="btn btn-warning" id="followBtn" onclick="toggleFollow()" style="display: none;">⏸️ Takibi Durdur (Buldum)</button>
+    </div>
+
+    <div id="debugBox">Duyulan kelimeler anlık olarak buraya düşecek...</div>
+
+    <div id="bookDisplay"><i>Tüm külliyat hafızaya alınıyor... Bu işlem kitap sayısına bağlı olarak 1-2 dakika sürebilir.</i></div>
+</div>
+
+<script>
+    // --- 18 KİTAPLIK LİSTE ---
+    // NOT: Sunucuya yüklemeden önce "Asayı musa.epub" dosyasının adını bilgisayarında "Asayi_musa.epub" yaparsan hata alma riskin ortadan kalkar.
+    const kitapListesi = [
+        'DHOrfiDuzeltilmis.epub',
+        'MunazaratDuzeltilmis.epub',
+        'Muhakmat.epub',
+        'ZuhretnurDuzeltilmis.epub',
+        'IVEKMUVAZENE.epub',
+        'Islcaz.epub',
+        'STasdikDuzeltilmis.epub',
+        'kastamonu.epub',
+        'Asayi_musa.epub', 
+        'Mesnevi.epub',
+        'Lemalar.epub',
+        'Emirdag1Duzeltilmis.epub',
+        'barla.epub',
+        'SualarDuzeltilmis.epub',
+        'Mektubat.epub',
+        'Sozler.epub',
+        'AsarEnvarHD.epub',
+        'TarihceDuzeltilmis.epub'
+    ]; 
+    
+    let isListening = false;
+    let autoFollow = true; 
+    let recognition;
+    let wordsArray = [];
+    let currentIndex = 0;
+    
+    let renderedStart = 0; 
+    let renderedEnd = 0;
+    const CHUNK_SIZE = 1000;
+
+    // --- SİTE AÇILIR AÇILMAZ KİTAPLARI OTOMATİK İNDİR ---
+    window.onload = async function() {
+        let fullText = "";
+
+        try {
+            for (let i = 0; i < kitapListesi.length; i++) {
+                // Kullanıcıya hangi kitabın yüklendiğini göster
+                document.getElementById('status').innerText = `⏳ İşleniyor (${i + 1} / ${kitapListesi.length}): ${kitapListesi[i]}...`;
+                
+                let response = await fetch(kitapListesi[i]);
+                if (!response.ok) throw new Error(`${kitapListesi[i]} bulunamadı.`);
+                
+                let arrayBuffer = await response.arrayBuffer();
+                let zip = await JSZip.loadAsync(arrayBuffer);
+                
+                for (let filename of Object.keys(zip.files)) {
+                    if (filename.endsWith('.html') || filename.endsWith('.xhtml') || filename.endsWith('.htm')) {
+                        let htmlData = await zip.files[filename].async("string");
+                        let parser = new DOMParser();
+                        let doc = parser.parseFromString(htmlData, 'text/html');
+                        fullText += doc.body.textContent + " ";
+                    }
+                }
+            }
+
+            document.getElementById('status').innerText = `⏳ Metinler birleştiriliyor ve kelimelere ayrılıyor...`;
+
+            // Metni Temizle ve Hazırla
+            let rawWords = fullText.trim().split(/\s+/);
+            wordsArray = rawWords.map((word, index) => {
+                let cleanWord = word.toLocaleLowerCase('tr-TR')
+                                    .replace(/â/g, 'a').replace(/î/g, 'i').replace(/û/g, 'u')
+                                    .replace(/['"()\[\]{}.,!?;:\-\–\—]/g, "");
+                return { original: word, clean: cleanWord, id: index };
+            }).filter(w => w.clean.length > 0 || w.original.length > 0);
+
+            // Başlangıç kelimelerini ekrana çiz
+            renderedStart = 0;
+            renderedEnd = Math.min(wordsArray.length, 1500);
+            document.getElementById('bookDisplay').innerHTML = renderHTMLChunk(renderedStart, renderedEnd);
+
+            document.getElementById('status').innerText = `✅ Başarılı! Tüm Külliyat yüklendi. (Toplam ${wordsArray.length.toLocaleString('tr-TR')} kelime)`;
+            document.getElementById('status').style.color = "#28a745";
+            document.getElementById('listenBtn').disabled = false;
+
+        } catch (error) {
+            document.getElementById('status').innerText = `🔴 Hata: ${error.message} Lütfen dosya isimlerinin kodla birebir aynı olduğundan emin olun.`;
+            document.getElementById('status').style.color = "red";
+            console.error(error);
+        }
+    };
+
+    function renderHTMLChunk(start, end) {
+        let html = "";
+        for (let i = start; i < end; i++) {
+            html += `<span id="w-${i}">${wordsArray[i].original}</span> `;
+        }
+        return html;
+    }
+
+    // --- SONSUZ KAYDIRMA ---
+    const displayDiv = document.getElementById('bookDisplay');
+    
+    displayDiv.addEventListener('scroll', function() {
+        stopFollowingManual();
+
+        if (this.scrollTop + this.clientHeight >= this.scrollHeight - 100) {
+            if (renderedEnd < wordsArray.length) {
+                let nextEnd = Math.min(wordsArray.length, renderedEnd + CHUNK_SIZE);
+                let newHtml = renderHTMLChunk(renderedEnd, nextEnd);
+                this.insertAdjacentHTML('beforeend', newHtml);
+                renderedEnd = nextEnd;
+            }
+        }
+        
+        if (this.scrollTop === 0 && renderedStart > 0) {
+            let nextStart = Math.max(0, renderedStart - CHUNK_SIZE);
+            let oldHtml = renderHTMLChunk(nextStart, renderedStart);
+            this.insertAdjacentHTML('afterbegin', oldHtml);
+            renderedStart = nextStart;
+            this.scrollTop = 50; 
+        }
+    });
+
+    function stopFollowingManual() {
+        if (autoFollow && wordsArray.length > 0 && isListening) {
+            toggleFollow(); 
+        }
+    }
+
+    function toggleFollow() {
+        autoFollow = !autoFollow;
+        let btn = document.getElementById('followBtn');
+        let status = document.getElementById('status');
+
+        if (autoFollow) {
+            btn.innerText = "⏸️ Takibi Durdur (Buldum)";
+            btn.className = "btn btn-warning";
+            status.innerText = "🟢 Arama Aktif: Mikrofon açık, takip ediliyor...";
+            status.style.color = "#28a745";
+            
+            if (!isListening) { isListening = true; recognition.start(); }
+            let activeSpan = document.getElementById('w-' + currentIndex);
+            if (activeSpan) activeSpan.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else {
+            btn.innerText = "▶️ Takibe Devam Et";
+            btn.className = "btn btn-success";
+            status.innerText = "✋ Serbest Mod: Arama ve mikrofon DURDURULDU.";
+            status.style.color = "#ff9800";
+            
+            if (isListening) { isListening = false; recognition.stop(); }
+        }
+    }
+
+    // --- SES TANIMA VE ARAMA MOTORU ---
+    if ('webkitSpeechRecognition' in window) {
+        recognition = new webkitSpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'tr-TR';
+
+        recognition.onstart = function() {
+            document.getElementById('listenBtn').innerText = "⏹️ Tamamen Kapat";
+            document.getElementById('listenBtn').className = "btn btn-secondary";
+            document.getElementById('followBtn').style.display = "inline-block";
+        };
+
+        recognition.onresult = function(event) {
+            let currentTranscript = '';
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+                currentTranscript += event.results[i][0].transcript;
+            }
+            if (currentTranscript.trim() !== "") {
+                document.getElementById('debugBox').innerText = "Duyulan: " + currentTranscript;
+                if (autoFollow) processSpeech(currentTranscript);
+            }
+        };
+
+        recognition.onend = function() {
+            if (isListening && autoFollow) recognition.start();
+        };
+    }
+
+    function toggleListening() {
+        if (wordsArray.length === 0) return;
+        
+        if (isListening || !autoFollow) { 
+            isListening = false; autoFollow = true; recognition.stop(); 
+            document.getElementById('listenBtn').innerText = "🎙️ Dinlemeye Başla"; 
+            document.getElementById('listenBtn').className = "btn btn-danger";
+            document.getElementById('followBtn').style.display = "none";
+            document.getElementById('status').innerText = "⚪ Sistem tamamen kapatıldı.";
+            document.getElementById('status').style.color = "#007bff";
+        } else { 
+            isListening = true; autoFollow = true; recognition.start(); 
+            document.getElementById('status').innerText = "🟢 Arama Aktif: Konuşan kişi takip ediliyor...";
+            document.getElementById('status').style.color = "#28a745";
+        }
+    }
+
+    function processSpeech(transcript) {
+        let spokenWords = transcript.toLocaleLowerCase('tr-TR')
+                                    .replace(/â/g, 'a').replace(/î/g, 'i').replace(/û/g, 'u')
+                                    .replace(/['"()\[\]{}.,!?;:\-\–\—]/g, "")
+                                    .split(/\s+/).filter(w => w.length >= 3);
+        if (spokenWords.length < 2) return; 
+
+        let seq3 = spokenWords.slice(-3);
+        let seq2 = spokenWords.slice(-2);
+        let foundIndex = searchSequence(seq3);
+        if (foundIndex === -1) foundIndex = searchSequence(seq2);
+
+        if (foundIndex !== -1) {
+            currentIndex = foundIndex;
+            updateHighlight();
+        }
+    }
+
+    function searchSequence(seqArray) {
+        let localStart = Math.max(0, currentIndex - 1500);
+        let localEnd = Math.min(wordsArray.length, currentIndex + 1500);
+        let localMatch = findConsecutiveMatch(seqArray, localStart, localEnd);
+        if (localMatch !== -1) return localMatch;
+        return findConsecutiveMatch(seqArray, 0, wordsArray.length);
+    }
+
+    function findConsecutiveMatch(seqArray, startIndex, endIndex) {
+        for (let i = startIndex; i <= endIndex - seqArray.length; i++) {
+            let isFullMatch = true;
+            for (let j = 0; j < seqArray.length; j++) {
+                if (!isMatch(wordsArray[i + j].clean, seqArray[j])) {
+                    isFullMatch = false; break; 
+                }
+            }
+            if (isFullMatch) return i + seqArray.length - 1; 
+        }
+        return -1;
+    }
+
+    function isMatch(textWord, spokenWord) {
+        if (!textWord || !spokenWord) return false;
+        if (textWord === spokenWord) return true;
+        if (textWord.length >= 4 && spokenWord.length >= 4 && textWord.startsWith(spokenWord.substring(0, 4))) return true;
+        return false;
+    }
+
+    function updateHighlight() {
+        if (currentIndex < renderedStart || currentIndex > renderedEnd - 100) {
+            renderedStart = Math.max(0, currentIndex - 300);
+            renderedEnd = Math.min(wordsArray.length, currentIndex + 1000);
+            document.getElementById('bookDisplay').innerHTML = renderHTMLChunk(renderedStart, renderedEnd);
+        }
+
+        for (let i = renderedStart; i < renderedEnd; i++) {
+            let span = document.getElementById('w-' + i);
+            if (!span) continue;
+            
+            if (i < currentIndex) span.className = 'read-text';
+            else if (i === currentIndex) span.className = 'active-word';
+            else span.className = ''; 
+        }
+
+        let activeSpan = document.getElementById('w-' + currentIndex);
+        if (activeSpan) {
+            activeSpan.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+</script>
+
+</body>
+</html>
