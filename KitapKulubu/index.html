@@ -3,168 +3,160 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Külliyat Canlı Takip - Profesyonel Sürüm</title>
+    <title>Külliyat Canlı Takip - Premium Sürüm</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Noto+Serif:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     
     <style>
         /* --- GLOBAL STİLLER --- */
         :root {
-            --bg-color: #0f172a;
-            --container-bg: rgba(255, 255, 255, 0.05);
-            --text-color: #f1f5f9;
-            --primary-color: #f59e0b; 
-            --primary-glow: #fbbf24;
-            --read-text-color: #64748b;
-            --active-bg: rgba(245, 158, 11, 0.2);
+            --bg-dark: #0f172a;
+            --bg-panel: rgba(30, 41, 59, 0.7);
+            --text-main: #f8fafc;
+            --text-muted: #64748b;
+            --gold-primary: #f59e0b; 
+            --gold-glow: rgba(245, 158, 11, 0.4);
+            --danger: #ef4444;
         }
 
         body {
             font-family: 'Poppins', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 0;
-            overflow: hidden; 
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            margin: 0; padding: 0;
             height: 100vh;
-            display: flex;
-            flex-direction: column;
+            display: flex; flex-direction: column;
+            overflow: hidden;
         }
 
         /* --- LOADER ANİMASYONU --- */
         #loadingOverlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--bg-color);
+            background: var(--bg-dark);
             display: flex; flex-direction: column; justify-content: center; align-items: center;
-            z-index: 1000; transition: opacity 0.8s ease-out, visibility 0.8s;
+            z-index: 1000; transition: opacity 0.5s ease-out;
         }
 
         .spinner {
-            width: 80px; height: 80px;
-            border: 4px solid rgba(255, 255, 255, 0.1);
-            border-top: 4px solid var(--primary-color);
+            width: 70px; height: 70px;
+            border: 3px solid rgba(255, 255, 255, 0.05);
+            border-top: 3px solid var(--gold-primary);
             border-radius: 50%;
-            animation: spin 1s linear infinite, glowPulse 1.5s infinite alternate;
-            margin-bottom: 20px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 25px;
         }
 
         #loadingStatus {
-            font-size: 18px; color: var(--primary-color);
-            text-shadow: 0 0 10px var(--active-bg); font-weight: 600; text-align: center; padding: 0 20px;
+            font-size: 16px; color: var(--gold-primary);
+            font-weight: 500; text-align: center; letter-spacing: 1px;
         }
 
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        @keyframes glowPulse { from { box-shadow: 0 0 10px var(--active-bg); } to { box-shadow: 0 0 30px var(--primary-color); } }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
 
-        /* --- ANA ARAYÜZ --- */
+        /* --- ANA ARAYÜZ (HEADER) --- */
         #app { display: none; flex-direction: column; height: 100%; }
 
         header {
-            background: var(--container-bg); backdrop-filter: blur(10px);
-            padding: 15px 30px; display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 10;
-        }
-
-        header h2 { margin: 0; font-weight: 700; font-size: 22px; }
-        header #status { font-weight: 600; font-size: 16px; color: #a3e635; }
-
-        /* YENİDEN EKLENEN "DUYULAN" BÖLÜMÜ (Şık Tasarım) */
-        #debugBox {
-            margin: 15px 5%;
-            padding: 15px;
-            background: rgba(0, 0, 0, 0.4);
-            border: 1px solid rgba(245, 158, 11, 0.3);
-            border-radius: 8px;
-            color: #fcd34d;
-            font-family: monospace;
-            font-size: 18px;
-            text-align: center;
-            min-height: 28px;
-            backdrop-filter: blur(5px);
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            background: var(--bg-panel);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            padding: 15px 25px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             z-index: 10;
         }
 
+        .header-title { display: flex; flex-direction: column; }
+        .header-title h2 { margin: 0; font-size: 20px; font-weight: 600; letter-spacing: 0.5px; }
+        .header-title span { font-size: 12px; color: #10b981; font-weight: 500; } /* Hazır yazısı */
+
+        /* Font Kontrolleri */
+        .font-controls { display: flex; gap: 10px; }
+        .font-btn {
+            background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255,255,255,0.15);
+            color: #fff; width: 40px; height: 40px; border-radius: 8px;
+            font-size: 18px; font-weight: 600; cursor: pointer;
+            transition: all 0.2s; display: flex; justify-content: center; align-items: center;
+        }
+        .font-btn:hover { background: var(--gold-primary); color: #000; border-color: var(--gold-primary); }
+
         /* --- METİN ALANI --- */
         #bookDisplay {
-            flex: 1; overflow-y: auto; background: rgba(255, 255, 255, 0.01);
-            padding: 20px 10% 150px 10%; font-family: 'Noto Serif', serif;
-            font-size: 28px; line-height: 2.2; scroll-behavior: smooth; cursor: text;
+            flex: 1; overflow-y: auto; 
+            padding: 30px 10% 180px 10%; /* Alt boşluk panel için */
+            font-family: 'Lora', serif; /* Kitap hissiyatı veren font */
+            font-size: 28px; /* Varsayılan */
+            line-height: 2.2; 
+            scroll-behavior: smooth;
         }
 
         #bookDisplay::-webkit-scrollbar { width: 6px; }
-        #bookDisplay::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+        #bookDisplay::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
 
-        span { transition: all 0.3s ease; border-radius: 6px; padding: 2px 2px; }
-        .read-text { color: var(--read-text-color); }
+        #bookDisplay span { transition: color 0.3s, background 0.3s; border-radius: 4px; padding: 2px; }
+        .read-text { color: var(--text-muted); }
         .active-word {
-            background-color: var(--active-bg); color: var(--primary-color);
-            font-weight: 700; box-shadow: 0 0 20px var(--primary-color);
-            transform: scale(1.05); display: inline-block;
+            background-color: var(--gold-glow);
+            color: var(--gold-primary);
+            font-weight: 600;
+            box-shadow: 0 0 15px var(--gold-glow);
+            border-bottom: 2px solid var(--gold-primary);
         }
 
-        /* --- BÜYÜLÜ DİNLEME BUTONU VE KONTROLLER --- */
-        #controls {
-            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
-            display: flex; align-items: center; z-index: 20; gap: 20px;
+        /* --- ALT KONTROL PANELİ (Duyulan + Mikrofon) --- */
+        .bottom-panel {
+            position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%);
+            width: 90%; max-width: 600px;
+            background: var(--bg-panel);
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 25px;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 10px 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            z-index: 20;
         }
 
+        #debugBox {
+            flex: 1; color: var(--gold-primary); font-family: monospace;
+            font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            padding-right: 15px; opacity: 0.8;
+        }
+
+        /* Modern Mikrofon Butonu */
         .mic-btn {
-            width: 80px; height: 80px; border-radius: 50%; background-color: var(--primary-color);
-            border: none; cursor: pointer; box-shadow: 0 0 20px rgba(0,0,0,0.3);
-            display: flex; justify-content: center; align-items: center; transition: all 0.3s ease; position: relative;
+            width: 60px; height: 60px; border-radius: 50%;
+            border: none; cursor: pointer; display: flex; justify-content: center; align-items: center;
+            font-size: 24px; transition: all 0.3s; flex-shrink: 0;
         }
 
-        .mic-btn:hover { transform: scale(1.1); box-shadow: 0 0 40px var(--primary-glow); }
-        .mic-icon { font-size: 40px; color: #fff; }
-
+        /* Dinlemiyor (Kapalı) Durumu */
         .mic-btn.idle {
-            animation: buttonIdleShake 3s infinite; background-color: var(--bg-color);
-            border: 2px solid var(--primary-color); box-shadow: 0 0 15px var(--active-bg);
+            background: rgba(255,255,255,0.1); color: #fff;
+            border: 1px solid rgba(255,255,255,0.2);
         }
-        .mic-btn.idle .mic-icon { color: var(--primary-color); }
+        .mic-btn.idle:hover { background: rgba(255,255,255,0.2); }
 
-        .mic-btn.listening::after {
-            content: ''; position: absolute; width: 100%; height: 100%;
-            border-radius: 50%; border: 4px solid var(--primary-glow);
-            animation: micWaves 1.5s infinite; opacity: 0;
-        }
-
-        #followBtn {
-            background-color: rgba(0,0,0,0.7); color: var(--text-color); border: 2px solid var(--primary-color);
-            padding: 15px 25px; border-radius: 30px; font-weight: 600; font-size: 16px;
-            cursor: pointer; transition: 0.3s; display: none; backdrop-filter: blur(5px); letter-spacing: 1px;
+        /* Dinliyor (Açık) Durumu */
+        .mic-btn.listening {
+            background: var(--danger); color: #fff;
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
+            animation: pulse 1.5s infinite;
         }
 
-        #followBtn:hover { background-color: var(--primary-color); color: #000; box-shadow: 0 0 20px var(--primary-glow); }
-
-        @keyframes buttonIdleShake {
-            0%, 100% { transform: rotate(0deg) scale(1); }
-            5% { transform: rotate(3deg) scale(1.02); }
-            10% { transform: rotate(-3deg); }
-            15% { transform: rotate(0deg); }
-        }
-        @keyframes micWaves {
-            0% { transform: scale(1); opacity: 0.8; }
-            100% { transform: scale(1.6); opacity: 0; }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
         }
 
-        /* --- MOBİL UYUMLULUK (TELEFONLAR İÇİN ÖZEL TASARIM) --- */
+        /* Mobil Optimizasyon */
         @media (max-width: 768px) {
-            header { flex-direction: column; gap: 10px; text-align: center; padding: 15px; }
-            header h2 { font-size: 20px; }
-            #debugBox { font-size: 16px; padding: 10px; margin: 10px 5%; }
-            #bookDisplay { 
-                font-size: 30px; /* Mobilde okuması kolay olsun diye büyütüldü */
-                line-height: 2.1; 
-                padding: 10px 5% 150px 5%; 
-            }
-            .mic-btn { width: 90px; height: 90px; }
-            .mic-icon { font-size: 45px; }
-            #controls { width: 100%; justify-content: center; flex-direction: column-reverse; bottom: 20px; gap: 15px;}
-            #followBtn { font-size: 18px; padding: 15px 40px; }
+            #bookDisplay { padding: 20px 5% 180px 5%; font-size: 24px; }
+            .bottom-panel { width: 85%; padding: 8px 15px; border-radius: 20px; }
+            .mic-btn { width: 50px; height: 50px; font-size: 20px; }
+            #debugBox { font-size: 13px; }
         }
     </style>
 </head>
@@ -172,23 +164,27 @@
 
 <div id="loadingOverlay">
     <div class="spinner"></div>
-    <div id="loadingStatus">Tüm Külliyat hafızaya alınıyor...<br>Lütfen bekleyin.</div>
+    <div id="loadingStatus">Külliyat Yükleniyor...</div>
 </div>
 
 <div id="app">
     <header>
-        <h2>Külliyat Takip</h2>
-        <div id="status">Sunucuyla bağlantı kuruldu.</div>
+        <div class="header-title">
+            <h2>Külliyat Takip</h2>
+            <span id="appStatus">Bağlanıyor...</span>
+        </div>
+        <div class="font-controls">
+            <button class="font-btn" onclick="changeFontSize(-2, event)">A-</button>
+            <button class="font-btn" onclick="changeFontSize(2, event)">A+</button>
+        </div>
     </header>
 
-    <div id="debugBox">🗣️ Duyulan kelimeler burada belirecek...</div>
+    <div id="bookDisplay">Metin Yükleniyor...</div>
 
-    <div id="bookDisplay">Metin yükleniyor...</div>
-
-    <div id="controls">
-        <button id="followBtn" onclick="toggleFollow()">🛑 Takibi Durdur</button>
-        <button id="listenBtn" class="mic-btn idle" onclick="toggleListening()" disabled>
-            <span class="mic-icon">🎙️</span>
+    <div class="bottom-panel" id="bottomPanel">
+        <div id="debugBox">Sistem hazır. Mikrofonu açın.</div>
+        <button id="mainMicBtn" class="mic-btn idle" onclick="toggleListening(event)" disabled>
+            🎙️
         </button>
     </div>
 </div>
@@ -197,26 +193,27 @@
     const kitapListesi = [
         'DHOrfiDuzeltilmis.epub', 'MunazaratDuzeltilmis.epub', 'Muhakmat.epub',
         'ZuhretnurDuzeltilmis.epub', 'IVEKMUVAZENE.epub', 'isicaz.epub', 
-        'STasdikDuzeltilmis.epub', 'kastamonu.epub', 'Asayi_musa.epub', 
+        'STasdikDuzeltilmis.epub', 'kastamonu.epub', 'Asayı musa.epub', 
         'Mesnevi.epub', 'Lemalar.epub', 'Emirdag1Duzeltilmis.epub',
         'barla.epub', 'SualarDuzeltilmis.epub', 'Mektubat.epub',
         'Sozler.epub', 'AsarEnvarHD.epub', 'TarihceDuzeltilmis.epub'
     ]; 
     
     let isListening = false;
-    let autoFollow = true; 
     let recognition;
     let wordsArray = [];
     let currentIndex = 0;
     let renderedStart = 0; 
     let renderedEnd = 0;
     const CHUNK_SIZE = 1000;
+    let currentFontSize = 28; // Varsayılan font boyutu
 
+    // --- SİTE YÜKLEME ---
     window.onload = async function() {
         let fullText = "";
         try {
             for (let i = 0; i < kitapListesi.length; i++) {
-                document.getElementById('loadingStatus').innerText = `⏳ İşleniyor (${i + 1} / ${kitapListesi.length}): ${kitapListesi[i]}...`;
+                document.getElementById('loadingStatus').innerText = `İşleniyor: ${i + 1}/${kitapListesi.length}`;
                 let response = await fetch(kitapListesi[i]);
                 if (!response.ok) throw new Error(`${kitapListesi[i]} bulunamadı.`);
                 
@@ -233,7 +230,7 @@
                 }
             }
 
-            document.getElementById('loadingStatus').innerText = `✨ Metinler büyüleniyor ve hazırlanıyor...`;
+            document.getElementById('loadingStatus').innerText = `Metin Derleniyor...`;
 
             let rawWords = fullText.trim().split(/\s+/);
             wordsArray = rawWords.map((word, index) => {
@@ -247,93 +244,66 @@
             renderedEnd = Math.min(wordsArray.length, 1500);
             document.getElementById('bookDisplay').innerHTML = renderHTMLChunk(renderedStart, renderedEnd);
 
+            // Loader'ı kapat
             const overlay = document.getElementById('loadingOverlay');
             overlay.style.opacity = '0';
-            overlay.style.visibility = 'hidden';
             setTimeout(() => {
+                overlay.style.display = 'none';
                 document.getElementById('app').style.display = 'flex';
-                document.body.style.overflow = 'auto'; 
-            }, 800);
+            }, 500);
 
-            document.getElementById('status').innerText = `Külliyat Hazır.`;
-            document.getElementById('listenBtn').disabled = false;
+            document.getElementById('appStatus').innerText = `Tüm Külliyat Hazır`;
+            document.getElementById('mainMicBtn').disabled = false;
 
         } catch (error) {
-            document.getElementById('loadingStatus').innerText = `🔴 Hata: ${error.message}`;
-            document.getElementById('loadingStatus').style.color = "red";
-            console.error(error);
+            document.getElementById('loadingStatus').innerText = `Hata: ${error.message}`;
+            document.getElementById('loadingStatus').style.color = "#ef4444";
         }
     };
 
-    function renderHTMLChunk(start, end) {
-        let html = "";
-        for (let i = start; i < end; i++) {
-            html += `<span id="w-${i}">${wordsArray[i].original}</span> `;
-        }
-        return html;
+    // --- FONT BÜYÜTME / KÜÇÜLTME ---
+    function changeFontSize(change, event) {
+        event.stopPropagation(); // Tıklamanın mikrofonu kapatmasını engelle
+        currentFontSize += change;
+        if(currentFontSize < 16) currentFontSize = 16;
+        if(currentFontSize > 60) currentFontSize = 60;
+        
+        document.getElementById('bookDisplay').style.fontSize = currentFontSize + 'px';
+        
+        // Zıplamayı önlemek için aktif kelimeye yeniden odaklan
+        let activeSpan = document.getElementById('w-' + currentIndex);
+        if (activeSpan) activeSpan.scrollIntoView({ behavior: 'auto', block: 'center' });
     }
 
-    const displayDiv = document.getElementById('bookDisplay');
-    
-    // YENİ: Otomatik durmayı tamamen çözen KESİN yöntem (scroll yerine dokunma/fare tekerleği dinleniyor)
-    displayDiv.addEventListener('wheel', stopFollowingManual);     
-    displayDiv.addEventListener('touchstart', stopFollowingManual); 
-    displayDiv.addEventListener('mousedown', stopFollowingManual);  
-
-    displayDiv.addEventListener('scroll', function() {
-        if (this.scrollTop + this.clientHeight >= this.scrollHeight - 100) {
-            if (renderedEnd < wordsArray.length) {
-                let nextEnd = Math.min(wordsArray.length, renderedEnd + CHUNK_SIZE);
-                let newHtml = renderHTMLChunk(renderedEnd, nextEnd);
-                this.insertAdjacentHTML('beforeend', newHtml);
-                renderedEnd = nextEnd;
-            }
-        }
-        if (this.scrollTop === 0 && renderedStart > 0) {
-            let nextStart = Math.max(0, renderedStart - CHUNK_SIZE);
-            let oldHtml = renderHTMLChunk(nextStart, renderedStart);
-            this.insertAdjacentHTML('afterbegin', oldHtml);
-            renderedStart = nextStart;
-            this.scrollTop = 50; 
+    // --- MİKROFONU DIŞARI TIKLAYINCA VEYA SEKMEYİ DEĞİŞTİRİNCE KAPATMA ---
+    document.addEventListener('click', function(event) {
+        // Eğer dinliyorsa ve tıklanan yer Alt Panel veya Font butonları DEĞİLSE dinlemeyi durdur
+        if (isListening && !event.target.closest('#bottomPanel') && !event.target.closest('.font-controls')) {
+            stopListening();
         }
     });
 
-    function stopFollowingManual() {
-        if (autoFollow && wordsArray.length > 0 && isListening) {
-            toggleFollow(); 
+    // Sekme değiştirildiğinde veya telefon alta alındığında kapat
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden && isListening) {
+            stopListening();
         }
-    }
+    });
 
-    function toggleFollow() {
-        autoFollow = !autoFollow;
-        let btn = document.getElementById('followBtn');
-        let status = document.getElementById('status');
-
-        if (autoFollow) {
-            btn.innerText = "🛑 Takibi Durdur";
-            status.innerText = "🟢 Dinleniyor ve Takip Ediliyor...";
-            status.style.color = "#a3e635";
-            if (!isListening) { isListening = true; recognition.start(); }
-            updateHighlight(); 
-        } else {
-            btn.innerText = "▶️ Takibe Devam Et";
-            status.innerText = "✋ Serbest Mod (Arama Durduruldu)";
-            status.style.color = "#f59e0b";
-            if (isListening) { isListening = false; recognition.stop(); }
-        }
-    }
-
+    // --- SES TANIMA MOTORU ---
     if ('webkitSpeechRecognition' in window) {
         recognition = new webkitSpeechRecognition();
         recognition.continuous = true;
         recognition.interimResults = true;
         recognition.lang = 'tr-TR';
 
-        const micBtn = document.getElementById('listenBtn');
-
         recognition.onstart = function() {
-            micBtn.className = "mic-btn listening"; 
-            document.getElementById('followBtn').style.display = "inline-block";
+            // Dinleme başladığında UI güncelle
+            isListening = true;
+            document.getElementById('mainMicBtn').className = "mic-btn listening";
+            document.getElementById('appStatus').innerText = "Dinleniyor...";
+            document.getElementById('appStatus').style.color = "#f59e0b";
+            document.getElementById('debugBox').innerText = "Konuşmanız bekleniyor...";
         };
 
         recognition.onresult = function(event) {
@@ -342,38 +312,46 @@
                 currentTranscript += event.results[i][0].transcript;
             }
             if (currentTranscript.trim() !== "") {
-                document.getElementById('debugBox').innerHTML = "🗣️ <b>Duyulan:</b> " + currentTranscript;
-                if (autoFollow) processSpeech(currentTranscript);
+                document.getElementById('debugBox').innerText = currentTranscript;
+                processSpeech(currentTranscript);
             }
         };
 
-        recognition.onerror = function(event) {
-            console.error("Mikrofon hatası: ", event.error);
-        };
-
         recognition.onend = function() {
-            if (isListening && autoFollow) recognition.start();
+            // SADECE kullanıcı manuel olarak kapatmadıysa (isListening hala true ise) yeniden başlat.
+            // Bu, önceki sürümdeki durdurulduktan sonra tekrar başlama hatasını kesin çözer.
+            if (isListening) {
+                try { recognition.start(); } catch(e){}
+            }
         };
     }
 
-    function toggleListening() {
-        if (wordsArray.length === 0) return;
-        const micBtn = document.getElementById('listenBtn');
-        
-        if (isListening || !autoFollow) { 
-            isListening = false; autoFollow = true; recognition.stop(); 
-            micBtn.className = "mic-btn idle"; 
-            document.getElementById('followBtn').style.display = "none";
-            document.getElementById('status').innerText = "Külliyat Hazır.";
-            document.getElementById('status').style.color = "#f1f5f9";
-            document.getElementById('debugBox').innerHTML = "🗣️ Duyulan kelimeler burada belirecek...";
-        } else { 
-            isListening = true; autoFollow = true; recognition.start(); 
-            document.getElementById('status').innerText = "🟢 Dinleniyor ve Takip Ediliyor...";
-            document.getElementById('status').style.color = "#a3e635";
+    // --- MİKROFON BUTONU KONTROLÜ (İki Durumlu) ---
+    function toggleListening(event) {
+        event.stopPropagation(); // Dışarı tıklama eventini tetiklememesi için
+        if (isListening) {
+            stopListening();
+        } else {
+            startListening();
         }
     }
 
+    function startListening() {
+        if (wordsArray.length === 0) return;
+        isListening = true;
+        try { recognition.start(); } catch(e){}
+    }
+
+    function stopListening() {
+        isListening = false;
+        recognition.stop();
+        document.getElementById('mainMicBtn').className = "mic-btn idle";
+        document.getElementById('appStatus').innerText = "Takip Duraklatıldı";
+        document.getElementById('appStatus').style.color = "#ef4444";
+        document.getElementById('debugBox').innerText = "Sistem beklemede.";
+    }
+
+    // --- OSMANLICA DESTEKLİ (FUZZY) ARAMA ---
     function processSpeech(transcript) {
         let spokenWords = transcript.toLocaleLowerCase('tr-TR')
                                     .replace(/â/g, 'a').replace(/î/g, 'i').replace(/û/g, 'u')
@@ -413,12 +391,48 @@
         return -1;
     }
 
+    // YENİ: Osmanlıca kelimeler için genişletilmiş hoşgörü motoru
     function isMatch(textWord, spokenWord) {
         if (!textWord || !spokenWord) return false;
         if (textWord === spokenWord) return true;
-        if (textWord.length >= 4 && spokenWord.length >= 4 && textWord.startsWith(spokenWord.substring(0, 4))) return true;
+        
+        // Eğer kelime 4 harften uzunsa, çok daha esnek davran:
+        if (textWord.length >= 4 && spokenWord.length >= 4) {
+            // 1. Kök eşleşmesi (İlk 3 harf aynıysa kabul et. Örn: "tev"eccüh = "tev"eccü)
+            if (textWord.substring(0, 3) === spokenWord.substring(0, 3)) return true;
+            // 2. Alt Dizi eşleşmesi (Biri diğerinin içinde geçiyorsa kabul et)
+            if (textWord.includes(spokenWord) || spokenWord.includes(textWord)) return true;
+        }
         return false;
     }
+
+    // --- EKRAN ÇİZİMİ VE SONSUZ KAYDIRMA ---
+    function renderHTMLChunk(start, end) {
+        let html = "";
+        for (let i = start; i < end; i++) {
+            html += `<span id="w-${i}">${wordsArray[i].original}</span> `;
+        }
+        return html;
+    }
+
+    const displayDiv = document.getElementById('bookDisplay');
+    displayDiv.addEventListener('scroll', function() {
+        if (this.scrollTop + this.clientHeight >= this.scrollHeight - 100) {
+            if (renderedEnd < wordsArray.length) {
+                let nextEnd = Math.min(wordsArray.length, renderedEnd + CHUNK_SIZE);
+                let newHtml = renderHTMLChunk(renderedEnd, nextEnd);
+                this.insertAdjacentHTML('beforeend', newHtml);
+                renderedEnd = nextEnd;
+            }
+        }
+        if (this.scrollTop === 0 && renderedStart > 0) {
+            let nextStart = Math.max(0, renderedStart - CHUNK_SIZE);
+            let oldHtml = renderHTMLChunk(nextStart, renderedStart);
+            this.insertAdjacentHTML('afterbegin', oldHtml);
+            renderedStart = nextStart;
+            this.scrollTop = 50; 
+        }
+    });
 
     function updateHighlight() {
         if (currentIndex < renderedStart || currentIndex > renderedEnd - 100) {
@@ -437,8 +451,6 @@
 
         let activeSpan = document.getElementById('w-' + currentIndex);
         if (activeSpan) {
-            // Sadece kullanıcı dokunursa/kaydırırsa durması için scroll event'i değil
-            // wheel ve touchstart dinliyoruz. Bu kaydırma onları tetiklemez.
             activeSpan.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     }
