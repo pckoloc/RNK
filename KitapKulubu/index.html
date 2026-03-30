@@ -31,6 +31,36 @@
             overflow: hidden;
         }
 
+        /* --- YENİ: MİNİMAL BİLGİ ÇUBUĞU (Versiyon & Sayaç) --- */
+        .top-info-bar {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 15px;
+            font-size: 11px;
+            color: var(--text-muted);
+            box-sizing: border-box;
+            letter-spacing: 0.5px;
+            z-index: 50;
+        }
+        
+        .top-info-bar .version { font-family: monospace; opacity: 0.7; }
+        .top-info-bar .live-users { display: flex; align-items: center; gap: 5px; opacity: 0.8; }
+        .live-dot {
+            width: 6px; height: 6px; background-color: #10b981;
+            border-radius: 50%; display: inline-block;
+            box-shadow: 0 0 5px #10b981;
+            animation: pulse-dot 2s infinite;
+        }
+
+        @keyframes pulse-dot {
+            0% { opacity: 0.5; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+            100% { opacity: 0.5; transform: scale(0.8); }
+        }
+
         /* --- LOADER ANİMASYONU --- */
         #loadingOverlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -61,7 +91,7 @@
         header {
             background: var(--bg-panel);
             backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            padding: 15px 25px;
+            padding: 10px 25px;
             display: flex; justify-content: space-between; align-items: center;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             z-index: 10;
@@ -69,7 +99,7 @@
 
         .header-title { display: flex; flex-direction: column; }
         .header-title h2 { margin: 0; font-size: 20px; font-weight: 600; letter-spacing: 0.5px; }
-        .header-title span { font-size: 12px; color: #10b981; font-weight: 500; } /* Hazır yazısı */
+        .header-title span { font-size: 12px; color: #10b981; font-weight: 500; }
 
         /* Font Kontrolleri */
         .font-controls { display: flex; gap: 10px; }
@@ -84,9 +114,9 @@
         /* --- METİN ALANI --- */
         #bookDisplay {
             flex: 1; overflow-y: auto; 
-            padding: 30px 10% 180px 10%; /* Alt boşluk panel için */
-            font-family: 'Lora', serif; /* Kitap hissiyatı veren font */
-            font-size: 28px; /* Varsayılan */
+            padding: 30px 10% 180px 10%; 
+            font-family: 'Lora', serif; 
+            font-size: 28px; 
             line-height: 2.2; 
             scroll-behavior: smooth;
         }
@@ -104,7 +134,7 @@
             border-bottom: 2px solid var(--gold-primary);
         }
 
-        /* --- ALT KONTROL PANELİ (Duyulan + Mikrofon) --- */
+        /* --- ALT KONTROL PANELİ --- */
         .bottom-panel {
             position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%);
             width: 90%; max-width: 600px;
@@ -131,14 +161,12 @@
             font-size: 24px; transition: all 0.3s; flex-shrink: 0;
         }
 
-        /* Dinlemiyor (Kapalı) Durumu */
         .mic-btn.idle {
             background: rgba(255,255,255,0.1); color: #fff;
             border: 1px solid rgba(255,255,255,0.2);
         }
         .mic-btn.idle:hover { background: rgba(255,255,255,0.2); }
 
-        /* Dinliyor (Açık) Durumu */
         .mic-btn.listening {
             background: var(--danger); color: #fff;
             box-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
@@ -161,6 +189,11 @@
     </style>
 </head>
 <body>
+
+<div class="top-info-bar">
+    <div class="version">v1.5.0 Premium</div>
+    <div class="live-users"><span class="live-dot"></span> <span id="liveCounterText">1 Çevrimiçi</span></div>
+</div>
 
 <div id="loadingOverlay">
     <div class="spinner"></div>
@@ -190,6 +223,7 @@
 </div>
 
 <script>
+    // --- LİSTE GÜNCELLENDİ (Asayi_musa.epub eklendi) ---
     const kitapListesi = [
         'DHOrfiDuzeltilmis.epub', 'MunazaratDuzeltilmis.epub', 'Muhakmat.epub',
         'ZuhretnurDuzeltilmis.epub', 'IVEKMUVAZENE.epub', 'isicaz.epub', 
@@ -206,10 +240,27 @@
     let renderedStart = 0; 
     let renderedEnd = 0;
     const CHUNK_SIZE = 1000;
-    let currentFontSize = 28; // Varsayılan font boyutu
+    let currentFontSize = 28; 
+
+    // --- SİMÜLE EDİLMİŞ CANLI KULLANICI SAYACI ---
+    // (Gerçek bir veritabanı bağlanana kadar arayüzü doldurması için yazıldı)
+    function startLiveUserSimulation() {
+        const counterText = document.getElementById('liveCounterText');
+        let currentUsers = Math.floor(Math.random() * 5) + 2; // 2 ile 6 arası başla
+        counterText.innerText = `${currentUsers} Çevrimiçi`;
+
+        setInterval(() => {
+            if(Math.random() > 0.5) {
+                currentUsers += (Math.random() > 0.5 ? 1 : -1);
+                if (currentUsers < 1) currentUsers = 1;
+                counterText.innerText = `${currentUsers} Çevrimiçi`;
+            }
+        }, 12000); // Her 12 saniyede bir ufak dalgalanma yaratır
+    }
 
     // --- SİTE YÜKLEME ---
     window.onload = async function() {
+        startLiveUserSimulation(); // Sayacı başlat
         let fullText = "";
         try {
             for (let i = 0; i < kitapListesi.length; i++) {
@@ -244,7 +295,6 @@
             renderedEnd = Math.min(wordsArray.length, 1500);
             document.getElementById('bookDisplay').innerHTML = renderHTMLChunk(renderedStart, renderedEnd);
 
-            // Loader'ı kapat
             const overlay = document.getElementById('loadingOverlay');
             overlay.style.opacity = '0';
             setTimeout(() => {
@@ -263,27 +313,24 @@
 
     // --- FONT BÜYÜTME / KÜÇÜLTME ---
     function changeFontSize(change, event) {
-        event.stopPropagation(); // Tıklamanın mikrofonu kapatmasını engelle
+        event.stopPropagation(); 
         currentFontSize += change;
         if(currentFontSize < 16) currentFontSize = 16;
         if(currentFontSize > 60) currentFontSize = 60;
         
         document.getElementById('bookDisplay').style.fontSize = currentFontSize + 'px';
         
-        // Zıplamayı önlemek için aktif kelimeye yeniden odaklan
         let activeSpan = document.getElementById('w-' + currentIndex);
         if (activeSpan) activeSpan.scrollIntoView({ behavior: 'auto', block: 'center' });
     }
 
     // --- MİKROFONU DIŞARI TIKLAYINCA VEYA SEKMEYİ DEĞİŞTİRİNCE KAPATMA ---
     document.addEventListener('click', function(event) {
-        // Eğer dinliyorsa ve tıklanan yer Alt Panel veya Font butonları DEĞİLSE dinlemeyi durdur
         if (isListening && !event.target.closest('#bottomPanel') && !event.target.closest('.font-controls')) {
             stopListening();
         }
     });
 
-    // Sekme değiştirildiğinde veya telefon alta alındığında kapat
     document.addEventListener('visibilitychange', function() {
         if (document.hidden && isListening) {
             stopListening();
@@ -298,7 +345,6 @@
         recognition.lang = 'tr-TR';
 
         recognition.onstart = function() {
-            // Dinleme başladığında UI güncelle
             isListening = true;
             document.getElementById('mainMicBtn').className = "mic-btn listening";
             document.getElementById('appStatus').innerText = "Dinleniyor...";
@@ -318,17 +364,14 @@
         };
 
         recognition.onend = function() {
-            // SADECE kullanıcı manuel olarak kapatmadıysa (isListening hala true ise) yeniden başlat.
-            // Bu, önceki sürümdeki durdurulduktan sonra tekrar başlama hatasını kesin çözer.
             if (isListening) {
                 try { recognition.start(); } catch(e){}
             }
         };
     }
 
-    // --- MİKROFON BUTONU KONTROLÜ (İki Durumlu) ---
     function toggleListening(event) {
-        event.stopPropagation(); // Dışarı tıklama eventini tetiklememesi için
+        event.stopPropagation(); 
         if (isListening) {
             stopListening();
         } else {
@@ -351,7 +394,7 @@
         document.getElementById('debugBox').innerText = "Sistem beklemede.";
     }
 
-    // --- OSMANLICA DESTEKLİ (FUZZY) ARAMA ---
+    // --- YENİLENEN ARAMA MOTORU (MESAFE ÖNCELİKLİ) ---
     function processSpeech(transcript) {
         let spokenWords = transcript.toLocaleLowerCase('tr-TR')
                                     .replace(/â/g, 'a').replace(/î/g, 'i').replace(/û/g, 'u')
@@ -361,6 +404,7 @@
 
         let seq3 = spokenWords.slice(-3);
         let seq2 = spokenWords.slice(-2);
+        
         let foundIndex = searchSequence(seq3);
         if (foundIndex === -1) foundIndex = searchSequence(seq2);
 
@@ -371,11 +415,20 @@
     }
 
     function searchSequence(seqArray) {
-        let localStart = Math.max(0, currentIndex - 1500);
-        let localEnd = Math.min(wordsArray.length, currentIndex + 1500);
-        let localMatch = findConsecutiveMatch(seqArray, localStart, localEnd);
-        if (localMatch !== -1) return localMatch;
-        return findConsecutiveMatch(seqArray, 0, wordsArray.length);
+        let match = findConsecutiveMatch(seqArray, currentIndex, Math.min(wordsArray.length, currentIndex + 50));
+        if (match !== -1) return match;
+
+        match = findConsecutiveMatch(seqArray, Math.max(0, currentIndex - 50), currentIndex);
+        if (match !== -1) return match;
+
+        match = findConsecutiveMatch(seqArray, Math.max(0, currentIndex - 500), Math.min(wordsArray.length, currentIndex + 500));
+        if (match !== -1) return match;
+
+        if (seqArray.length >= 3) {
+            return findConsecutiveMatch(seqArray, 0, wordsArray.length);
+        }
+        
+        return -1;
     }
 
     function findConsecutiveMatch(seqArray, startIndex, endIndex) {
@@ -391,17 +444,13 @@
         return -1;
     }
 
-    // YENİ: Osmanlıca kelimeler için genişletilmiş hoşgörü motoru
     function isMatch(textWord, spokenWord) {
         if (!textWord || !spokenWord) return false;
         if (textWord === spokenWord) return true;
         
-        // Eğer kelime 4 harften uzunsa, çok daha esnek davran:
-        if (textWord.length >= 4 && spokenWord.length >= 4) {
-            // 1. Kök eşleşmesi (İlk 3 harf aynıysa kabul et. Örn: "tev"eccüh = "tev"eccü)
-            if (textWord.substring(0, 3) === spokenWord.substring(0, 3)) return true;
-            // 2. Alt Dizi eşleşmesi (Biri diğerinin içinde geçiyorsa kabul et)
+        if (textWord.length >= 3 && spokenWord.length >= 3) {
             if (textWord.includes(spokenWord) || spokenWord.includes(textWord)) return true;
+            if (textWord.startsWith(spokenWord.substring(0, 3))) return true;
         }
         return false;
     }
