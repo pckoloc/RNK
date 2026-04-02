@@ -3,195 +3,133 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Külliyat Canlı Takip - Premium Sürüm</title>
+    <title>Külliyat Canlı Takip - Ultimate UX Sürümü</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
-    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     
     <style>
-        /* --- GLOBAL STİLLER --- */
         :root {
             --bg-dark: #0f172a;
-            --bg-panel: rgba(30, 41, 59, 0.7);
+            --bg-panel: rgba(30, 41, 59, 0.85);
             --text-main: #f8fafc;
-            --text-muted: #64748b;
+            --text-muted: #94a3b8;
             --gold-primary: #f59e0b; 
-            --gold-glow: rgba(245, 158, 11, 0.4);
+            --gold-glow: rgba(245, 158, 11, 0.3);
             --danger: #ef4444;
         }
 
+        /* --- UYGULAMA İSKELETİ (Kayma ve Uzama Çözüldü) --- */
         body {
             font-family: 'Poppins', sans-serif;
             background-color: var(--bg-dark);
             color: var(--text-main);
             margin: 0; padding: 0;
-            height: 100vh;
+            height: 100vh; /* Ekran boyunu sabitle */
+            overflow: hidden; /* Sayfanın tümden kaymasını engelle */
             display: flex; flex-direction: column;
-            overflow: hidden;
         }
 
-        /* --- YENİ: MİNİMAL BİLGİ ÇUBUĞU (Versiyon & Sayaç) --- */
         .top-info-bar {
-            width: 100%;
-            background: rgba(0, 0, 0, 0.3);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 4px 15px;
-            font-size: 11px;
-            color: var(--text-muted);
-            box-sizing: border-box;
-            letter-spacing: 0.5px;
-            z-index: 50;
+            flex-shrink: 0;
+            width: 100%; background: rgba(0, 0, 0, 0.4); display: flex; justify-content: space-between;
+            align-items: center; padding: 4px 15px; font-size: 11px; color: var(--text-muted);
+            box-sizing: border-box; z-index: 50;
         }
         
         .top-info-bar .version { font-family: monospace; opacity: 0.7; }
         .top-info-bar .live-users { display: flex; align-items: center; gap: 5px; opacity: 0.8; }
         .live-dot {
             width: 6px; height: 6px; background-color: #10b981;
-            border-radius: 50%; display: inline-block;
-            box-shadow: 0 0 5px #10b981;
+            border-radius: 50%; display: inline-block; box-shadow: 0 0 5px #10b981;
             animation: pulse-dot 2s infinite;
         }
 
-        @keyframes pulse-dot {
-            0% { opacity: 0.5; transform: scale(0.8); }
-            50% { opacity: 1; transform: scale(1.2); }
-            100% { opacity: 0.5; transform: scale(0.8); }
-        }
+        @keyframes pulse-dot { 0% { opacity: 0.5; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } 100% { opacity: 0.5; transform: scale(0.8); } }
 
-        /* --- LOADER ANİMASYONU --- */
         #loadingOverlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--bg-dark);
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            background: var(--bg-dark); display: flex; flex-direction: column; justify-content: center; align-items: center;
             z-index: 1000; transition: opacity 0.5s ease-out;
         }
 
-        .spinner {
-            width: 70px; height: 70px;
-            border: 3px solid rgba(255, 255, 255, 0.05);
-            border-top: 3px solid var(--gold-primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 25px;
-        }
-
-        #loadingStatus {
-            font-size: 16px; color: var(--gold-primary);
-            font-weight: 500; text-align: center; letter-spacing: 1px;
-        }
+        .spinner { width: 60px; height: 60px; border: 3px solid rgba(255, 255, 255, 0.05); border-top: 3px solid var(--gold-primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+        #loadingStatus { font-size: 15px; color: var(--gold-primary); font-weight: 500; text-align: center; }
 
         @keyframes spin { 100% { transform: rotate(360deg); } }
 
-        /* --- ANA ARAYÜZ (HEADER) --- */
-        #app { display: none; flex-direction: column; height: 100%; }
+        /* --- SABİT HEADER --- */
+        #app { display: none; flex-direction: column; height: 100%; overflow: hidden; }
 
         header {
-            background: var(--bg-panel);
-            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            padding: 10px 25px;
-            display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            z-index: 10;
+            flex-shrink: 0; /* Header'ın küçülmesini/kaybolmasını engeller */
+            background: var(--bg-panel); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            padding: 10px 20px; display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05); z-index: 10;
         }
 
-        .header-title { display: flex; flex-direction: column; }
-        .header-title h2 { margin: 0; font-size: 20px; font-weight: 600; letter-spacing: 0.5px; }
-        .header-title span { font-size: 12px; color: #10b981; font-weight: 500; }
+        .header-title h2 { margin: 0; font-size: 18px; font-weight: 600; }
+        .header-title span { font-size: 11px; color: #10b981; font-weight: 500; }
 
-        /* Font Kontrolleri */
-        .font-controls { display: flex; gap: 10px; }
+        .font-controls { display: flex; gap: 8px; }
         .font-btn {
-            background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255,255,255,0.15);
-            color: #fff; width: 40px; height: 40px; border-radius: 8px;
-            font-size: 18px; font-weight: 600; cursor: pointer;
-            transition: all 0.2s; display: flex; justify-content: center; align-items: center;
+            background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255,255,255,0.1);
+            color: #fff; width: 35px; height: 35px; border-radius: 8px;
+            font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s;
         }
-        .font-btn:hover { background: var(--gold-primary); color: #000; border-color: var(--gold-primary); }
+        .font-btn:hover { background: var(--gold-primary); color: #000; }
 
-        /* --- METİN ALANI --- */
+        /* --- SADECE BU ALAN KAYACAK (METİN) --- */
         #bookDisplay {
-            flex: 1; overflow-y: auto; 
-            padding: 30px 10% 180px 10%; 
+            flex: 1; /* Kalan tüm boşluğu doldur */
+            overflow-y: auto; /* Sadece metin kutusu kaydırılabilir */
+            padding: 20px 8% 150px 8%; 
             font-family: 'Lora', serif; 
-            font-size: 28px; 
-            line-height: 2.2; 
+            font-size: 24px; 
+            line-height: 1.7; /* Daha dar varsayılan satır aralığı */
             scroll-behavior: smooth;
         }
 
-        #bookDisplay::-webkit-scrollbar { width: 6px; }
+        #bookDisplay::-webkit-scrollbar { width: 5px; }
         #bookDisplay::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
 
-        #bookDisplay span { transition: color 0.3s, background 0.3s; border-radius: 4px; padding: 2px; }
+        #bookDisplay span { transition: color 0.2s, background 0.2s; border-radius: 4px; padding: 2px; }
         .read-text { color: var(--text-muted); }
         .active-word {
-            background-color: var(--gold-glow);
-            color: var(--gold-primary);
-            font-weight: 600;
-            box-shadow: 0 0 15px var(--gold-glow);
-            border-bottom: 2px solid var(--gold-primary);
+            background-color: var(--gold-glow); color: var(--gold-primary);
+            font-weight: 600; border-bottom: 2px solid var(--gold-primary);
         }
 
         /* --- ALT KONTROL PANELİ --- */
         .bottom-panel {
-            position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%);
-            width: 90%; max-width: 600px;
-            background: var(--bg-panel);
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            width: 90%; max-width: 500px; background: var(--bg-panel);
             backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 25px;
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 20px;
             display: flex; align-items: center; justify-content: space-between;
-            padding: 10px 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            z-index: 20;
+            padding: 8px 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); z-index: 20;
         }
 
         #debugBox {
             flex: 1; color: var(--gold-primary); font-family: monospace;
-            font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-            padding-right: 15px; opacity: 0.8;
+            font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 15px;
         }
 
-        /* Modern Mikrofon Butonu */
         .mic-btn {
-            width: 60px; height: 60px; border-radius: 50%;
-            border: none; cursor: pointer; display: flex; justify-content: center; align-items: center;
-            font-size: 24px; transition: all 0.3s; flex-shrink: 0;
+            width: 50px; height: 50px; border-radius: 50%; border: none; cursor: pointer;
+            font-size: 20px; transition: all 0.3s; flex-shrink: 0;
         }
 
-        .mic-btn.idle {
-            background: rgba(255,255,255,0.1); color: #fff;
-            border: 1px solid rgba(255,255,255,0.2);
-        }
-        .mic-btn.idle:hover { background: rgba(255,255,255,0.2); }
+        .mic-btn.idle { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); }
+        .mic-btn.listening { background: var(--danger); color: #fff; box-shadow: 0 0 15px rgba(239, 68, 68, 0.6); animation: pulse 1.5s infinite; }
 
-        .mic-btn.listening {
-            background: var(--danger); color: #fff;
-            box-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-            70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-        }
-
-        /* Mobil Optimizasyon */
-        @media (max-width: 768px) {
-            #bookDisplay { padding: 20px 5% 180px 5%; font-size: 24px; }
-            .bottom-panel { width: 85%; padding: 8px 15px; border-radius: 20px; }
-            .mic-btn { width: 50px; height: 50px; font-size: 20px; }
-            #debugBox { font-size: 13px; }
-        }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
     </style>
 </head>
 <body>
 
 <div class="top-info-bar">
-    <div class="version">v1.5.0 Premium</div>
+    <div class="version">v1.6.0 Master UX</div>
     <div class="live-users"><span class="live-dot"></span> <span id="liveCounterText">1 Çevrimiçi</span></div>
 </div>
 
@@ -207,6 +145,7 @@
             <span id="appStatus">Bağlanıyor...</span>
         </div>
         <div class="font-controls">
+            <button class="font-btn" onclick="changeLineHeight(event)" title="Satır Aralığı">↕</button>
             <button class="font-btn" onclick="changeFontSize(-2, event)">A-</button>
             <button class="font-btn" onclick="changeFontSize(2, event)">A+</button>
         </div>
@@ -216,14 +155,11 @@
 
     <div class="bottom-panel" id="bottomPanel">
         <div id="debugBox">Sistem hazır. Mikrofonu açın.</div>
-        <button id="mainMicBtn" class="mic-btn idle" onclick="toggleListening(event)" disabled>
-            🎙️
-        </button>
+        <button id="mainMicBtn" class="mic-btn idle" onclick="toggleListening(event)" disabled>🎙️</button>
     </div>
 </div>
 
 <script>
-    // --- LİSTE GÜNCELLENDİ (Asayi_musa.epub eklendi) ---
     const kitapListesi = [
         'DHOrfiDuzeltilmis.epub', 'MunazaratDuzeltilmis.epub', 'Muhakmat.epub',
         'ZuhretnurDuzeltilmis.epub', 'IVEKMUVAZENE.epub', 'isicaz.epub', 
@@ -240,27 +176,25 @@
     let renderedStart = 0; 
     let renderedEnd = 0;
     const CHUNK_SIZE = 1000;
-    let currentFontSize = 28; 
+    
+    let currentFontSize = 24; 
+    let currentLineHeight = 1.7; // Varsayılan dar satır aralığı
 
-    // --- SİMÜLE EDİLMİŞ CANLI KULLANICI SAYACI ---
-    // (Gerçek bir veritabanı bağlanana kadar arayüzü doldurması için yazıldı)
     function startLiveUserSimulation() {
         const counterText = document.getElementById('liveCounterText');
-        let currentUsers = Math.floor(Math.random() * 5) + 2; // 2 ile 6 arası başla
+        let currentUsers = Math.floor(Math.random() * 5) + 2;
         counterText.innerText = `${currentUsers} Çevrimiçi`;
-
         setInterval(() => {
             if(Math.random() > 0.5) {
                 currentUsers += (Math.random() > 0.5 ? 1 : -1);
                 if (currentUsers < 1) currentUsers = 1;
                 counterText.innerText = `${currentUsers} Çevrimiçi`;
             }
-        }, 12000); // Her 12 saniyede bir ufak dalgalanma yaratır
+        }, 12000);
     }
 
-    // --- SİTE YÜKLEME ---
     window.onload = async function() {
-        startLiveUserSimulation(); // Sayacı başlat
+        startLiveUserSimulation();
         let fullText = "";
         try {
             for (let i = 0; i < kitapListesi.length; i++) {
@@ -280,8 +214,6 @@
                     }
                 }
             }
-
-            document.getElementById('loadingStatus').innerText = `Metin Derleniyor...`;
 
             let rawWords = fullText.trim().split(/\s+/);
             wordsArray = rawWords.map((word, index) => {
@@ -311,20 +243,25 @@
         }
     };
 
-    // --- FONT BÜYÜTME / KÜÇÜLTME ---
     function changeFontSize(change, event) {
         event.stopPropagation(); 
         currentFontSize += change;
         if(currentFontSize < 16) currentFontSize = 16;
-        if(currentFontSize > 60) currentFontSize = 60;
-        
+        if(currentFontSize > 50) currentFontSize = 50;
         document.getElementById('bookDisplay').style.fontSize = currentFontSize + 'px';
-        
-        let activeSpan = document.getElementById('w-' + currentIndex);
-        if (activeSpan) activeSpan.scrollIntoView({ behavior: 'auto', block: 'center' });
     }
 
-    // --- MİKROFONU DIŞARI TIKLAYINCA VEYA SEKMEYİ DEĞİŞTİRİNCE KAPATMA ---
+    // YENİ: Satır Aralığı Değiştirme Fonksiyonu
+    function changeLineHeight(event) {
+        event.stopPropagation();
+        // 3 kademe: 1.5 (Dar), 1.7 (Orta), 2.2 (Geniş)
+        if (currentLineHeight === 1.7) currentLineHeight = 2.2;
+        else if (currentLineHeight === 2.2) currentLineHeight = 1.4;
+        else currentLineHeight = 1.7;
+        
+        document.getElementById('bookDisplay').style.lineHeight = currentLineHeight;
+    }
+
     document.addEventListener('click', function(event) {
         if (isListening && !event.target.closest('#bottomPanel') && !event.target.closest('.font-controls')) {
             stopListening();
@@ -332,12 +269,9 @@
     });
 
     document.addEventListener('visibilitychange', function() {
-        if (document.hidden && isListening) {
-            stopListening();
-        }
+        if (document.hidden && isListening) stopListening();
     });
 
-    // --- SES TANIMA MOTORU ---
     if ('webkitSpeechRecognition' in window) {
         recognition = new webkitSpeechRecognition();
         recognition.continuous = true;
@@ -349,7 +283,6 @@
             document.getElementById('mainMicBtn').className = "mic-btn listening";
             document.getElementById('appStatus').innerText = "Dinleniyor...";
             document.getElementById('appStatus').style.color = "#f59e0b";
-            document.getElementById('debugBox').innerText = "Konuşmanız bekleniyor...";
         };
 
         recognition.onresult = function(event) {
@@ -364,19 +297,14 @@
         };
 
         recognition.onend = function() {
-            if (isListening) {
-                try { recognition.start(); } catch(e){}
-            }
+            if (isListening) { try { recognition.start(); } catch(e){} }
         };
     }
 
     function toggleListening(event) {
         event.stopPropagation(); 
-        if (isListening) {
-            stopListening();
-        } else {
-            startListening();
-        }
+        if (isListening) stopListening();
+        else startListening();
     }
 
     function startListening() {
@@ -391,10 +319,8 @@
         document.getElementById('mainMicBtn').className = "mic-btn idle";
         document.getElementById('appStatus').innerText = "Takip Duraklatıldı";
         document.getElementById('appStatus').style.color = "#ef4444";
-        document.getElementById('debugBox').innerText = "Sistem beklemede.";
     }
 
-    // --- YENİLENEN ARAMA MOTORU (MESAFE ÖNCELİKLİ) ---
     function processSpeech(transcript) {
         let spokenWords = transcript.toLocaleLowerCase('tr-TR')
                                     .replace(/â/g, 'a').replace(/î/g, 'i').replace(/û/g, 'u')
@@ -424,10 +350,7 @@
         match = findConsecutiveMatch(seqArray, Math.max(0, currentIndex - 500), Math.min(wordsArray.length, currentIndex + 500));
         if (match !== -1) return match;
 
-        if (seqArray.length >= 3) {
-            return findConsecutiveMatch(seqArray, 0, wordsArray.length);
-        }
-        
+        if (seqArray.length >= 3) return findConsecutiveMatch(seqArray, 0, wordsArray.length);
         return -1;
     }
 
@@ -447,7 +370,6 @@
     function isMatch(textWord, spokenWord) {
         if (!textWord || !spokenWord) return false;
         if (textWord === spokenWord) return true;
-        
         if (textWord.length >= 3 && spokenWord.length >= 3) {
             if (textWord.includes(spokenWord) || spokenWord.includes(textWord)) return true;
             if (textWord.startsWith(spokenWord.substring(0, 3))) return true;
@@ -455,7 +377,6 @@
         return false;
     }
 
-    // --- EKRAN ÇİZİMİ VE SONSUZ KAYDIRMA ---
     function renderHTMLChunk(start, end) {
         let html = "";
         for (let i = start; i < end; i++) {
@@ -464,25 +385,7 @@
         return html;
     }
 
-    const displayDiv = document.getElementById('bookDisplay');
-    displayDiv.addEventListener('scroll', function() {
-        if (this.scrollTop + this.clientHeight >= this.scrollHeight - 100) {
-            if (renderedEnd < wordsArray.length) {
-                let nextEnd = Math.min(wordsArray.length, renderedEnd + CHUNK_SIZE);
-                let newHtml = renderHTMLChunk(renderedEnd, nextEnd);
-                this.insertAdjacentHTML('beforeend', newHtml);
-                renderedEnd = nextEnd;
-            }
-        }
-        if (this.scrollTop === 0 && renderedStart > 0) {
-            let nextStart = Math.max(0, renderedStart - CHUNK_SIZE);
-            let oldHtml = renderHTMLChunk(nextStart, renderedStart);
-            this.insertAdjacentHTML('afterbegin', oldHtml);
-            renderedStart = nextStart;
-            this.scrollTop = 50; 
-        }
-    });
-
+    // TİTREMEYEN/KAYMAYAN TAKİP (Görünüm Optimizasyonu)
     function updateHighlight() {
         if (currentIndex < renderedStart || currentIndex > renderedEnd - 100) {
             renderedStart = Math.max(0, currentIndex - 300);
@@ -500,7 +403,14 @@
 
         let activeSpan = document.getElementById('w-' + currentIndex);
         if (activeSpan) {
-            activeSpan.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            let rect = activeSpan.getBoundingClientRect();
+            let viewHeight = window.innerHeight;
+            
+            // YENİ: Sadece kelime ekranın en alt %30'luk kısmına veya en üstüne gelirse ekranı kaydırır.
+            // Bu sayede her kelimede ekran titremez/kaymaz, gözü yormaz.
+            if (rect.top > viewHeight * 0.65 || rect.top < viewHeight * 0.25) {
+                activeSpan.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
         }
     }
 </script>
