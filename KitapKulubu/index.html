@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Külliyat Canlı Takip - Ultimate UX Sürümü</title>
+    <title>Külliyat Canlı Takip - Çevrimdışı Sürüm (PWA)</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -19,30 +19,23 @@
             --danger: #ef4444;
         }
 
-        /* --- UYGULAMA İSKELETİ (Kayma ve Uzama Çözüldü) --- */
         body {
-            font-family: 'Poppins', sans-serif;
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            margin: 0; padding: 0;
-            height: 100vh; /* Ekran boyunu sabitle */
-            overflow: hidden; /* Sayfanın tümden kaymasını engelle */
-            display: flex; flex-direction: column;
+            font-family: 'Poppins', sans-serif; background-color: var(--bg-dark);
+            color: var(--text-main); margin: 0; padding: 0;
+            height: 100vh; overflow: hidden; display: flex; flex-direction: column;
         }
 
         .top-info-bar {
-            flex-shrink: 0;
-            width: 100%; background: rgba(0, 0, 0, 0.4); display: flex; justify-content: space-between;
+            flex-shrink: 0; width: 100%; background: rgba(0, 0, 0, 0.4); display: flex; justify-content: space-between;
             align-items: center; padding: 4px 15px; font-size: 11px; color: var(--text-muted);
             box-sizing: border-box; z-index: 50;
         }
         
-        .top-info-bar .version { font-family: monospace; opacity: 0.7; }
+        .top-info-bar .version { font-family: monospace; opacity: 0.7; color: var(--gold-primary); font-weight: bold;}
         .top-info-bar .live-users { display: flex; align-items: center; gap: 5px; opacity: 0.8; }
         .live-dot {
-            width: 6px; height: 6px; background-color: #10b981;
-            border-radius: 50%; display: inline-block; box-shadow: 0 0 5px #10b981;
-            animation: pulse-dot 2s infinite;
+            width: 6px; height: 6px; background-color: #10b981; border-radius: 50%; display: inline-block;
+            box-shadow: 0 0 5px #10b981; animation: pulse-dot 2s infinite;
         }
 
         @keyframes pulse-dot { 0% { opacity: 0.5; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } 100% { opacity: 0.5; transform: scale(0.8); } }
@@ -55,15 +48,14 @@
 
         .spinner { width: 60px; height: 60px; border: 3px solid rgba(255, 255, 255, 0.05); border-top: 3px solid var(--gold-primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
         #loadingStatus { font-size: 15px; color: var(--gold-primary); font-weight: 500; text-align: center; }
+        #networkStatus { font-size: 12px; color: #10b981; margin-top: 10px; opacity: 0.8; }
 
         @keyframes spin { 100% { transform: rotate(360deg); } }
 
-        /* --- SABİT HEADER --- */
         #app { display: none; flex-direction: column; height: 100%; overflow: hidden; }
 
         header {
-            flex-shrink: 0; /* Header'ın küçülmesini/kaybolmasını engeller */
-            background: var(--bg-panel); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            flex-shrink: 0; background: var(--bg-panel); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
             padding: 10px 20px; display: flex; justify-content: space-between; align-items: center;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05); z-index: 10;
         }
@@ -79,28 +71,16 @@
         }
         .font-btn:hover { background: var(--gold-primary); color: #000; }
 
-        /* --- SADECE BU ALAN KAYACAK (METİN) --- */
         #bookDisplay {
-            flex: 1; /* Kalan tüm boşluğu doldur */
-            overflow-y: auto; /* Sadece metin kutusu kaydırılabilir */
-            padding: 20px 8% 150px 8%; 
-            font-family: 'Lora', serif; 
-            font-size: 24px; 
-            line-height: 1.7; /* Daha dar varsayılan satır aralığı */
-            scroll-behavior: smooth;
+            flex: 1; overflow-y: auto; padding: 20px 8% 150px 8%; 
+            font-family: 'Lora', serif; font-size: 24px; line-height: 1.7; scroll-behavior: smooth;
         }
-
         #bookDisplay::-webkit-scrollbar { width: 5px; }
         #bookDisplay::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
-
         #bookDisplay span { transition: color 0.2s, background 0.2s; border-radius: 4px; padding: 2px; }
         .read-text { color: var(--text-muted); }
-        .active-word {
-            background-color: var(--gold-glow); color: var(--gold-primary);
-            font-weight: 600; border-bottom: 2px solid var(--gold-primary);
-        }
+        .active-word { background-color: var(--gold-glow); color: var(--gold-primary); font-weight: 600; border-bottom: 2px solid var(--gold-primary); }
 
-        /* --- ALT KONTROL PANELİ --- */
         .bottom-panel {
             position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
             width: 90%; max-width: 500px; background: var(--bg-panel);
@@ -109,17 +89,8 @@
             display: flex; align-items: center; justify-content: space-between;
             padding: 8px 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); z-index: 20;
         }
-
-        #debugBox {
-            flex: 1; color: var(--gold-primary); font-family: monospace;
-            font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 15px;
-        }
-
-        .mic-btn {
-            width: 50px; height: 50px; border-radius: 50%; border: none; cursor: pointer;
-            font-size: 20px; transition: all 0.3s; flex-shrink: 0;
-        }
-
+        #debugBox { flex: 1; color: var(--gold-primary); font-family: monospace; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 15px; }
+        .mic-btn { width: 50px; height: 50px; border-radius: 50%; border: none; cursor: pointer; font-size: 20px; transition: all 0.3s; flex-shrink: 0; }
         .mic-btn.idle { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); }
         .mic-btn.listening { background: var(--danger); color: #fff; box-shadow: 0 0 15px rgba(239, 68, 68, 0.6); animation: pulse 1.5s infinite; }
 
@@ -129,13 +100,14 @@
 <body>
 
 <div class="top-info-bar">
-    <div class="version">v1.6.0 Master UX</div>
+    <div class="version">v2.0.0 (Offline)</div>
     <div class="live-users"><span class="live-dot"></span> <span id="liveCounterText">1 Çevrimiçi</span></div>
 </div>
 
 <div id="loadingOverlay">
     <div class="spinner"></div>
-    <div id="loadingStatus">Külliyat Yükleniyor...</div>
+    <div id="loadingStatus">Sistem Başlatılıyor...</div>
+    <div id="networkStatus">Veriler kontrol ediliyor...</div>
 </div>
 
 <div id="app">
@@ -169,16 +141,12 @@
         'Sozler.epub', 'AsarEnvarHD.epub', 'TarihceDuzeltilmis.epub'
     ]; 
     
-    let isListening = false;
-    let recognition;
-    let wordsArray = [];
-    let currentIndex = 0;
-    let renderedStart = 0; 
-    let renderedEnd = 0;
-    const CHUNK_SIZE = 1000;
+    const CACHE_NAME = 'kulliyat-kitaplar-v1'; // PWA Cache Adı
     
-    let currentFontSize = 24; 
-    let currentLineHeight = 1.7; // Varsayılan dar satır aralığı
+    let isListening = false; let recognition; let wordsArray = [];
+    let currentIndex = 0; let renderedStart = 0; let renderedEnd = 0;
+    const CHUNK_SIZE = 1000;
+    let currentFontSize = 24; let currentLineHeight = 1.7;
 
     function startLiveUserSimulation() {
         const counterText = document.getElementById('liveCounterText');
@@ -193,14 +161,36 @@
         }, 12000);
     }
 
+    // --- YENİ: CACHE (BELLEK) ENTEGRASYONLU YÜKLEME ---
     window.onload = async function() {
         startLiveUserSimulation();
         let fullText = "";
+        
         try {
+            // Tarayıcının hafıza bankasını açıyoruz
+            const cache = await caches.open(CACHE_NAME);
+            let downloadedFromNetwork = false;
+
             for (let i = 0; i < kitapListesi.length; i++) {
                 document.getElementById('loadingStatus').innerText = `İşleniyor: ${i + 1}/${kitapListesi.length}`;
-                let response = await fetch(kitapListesi[i]);
-                if (!response.ok) throw new Error(`${kitapListesi[i]} bulunamadı.`);
+                
+                // Önce Hafızaya (Cache) Bak
+                let response = await cache.match(kitapListesi[i]);
+                
+                if (response) {
+                    document.getElementById('networkStatus').innerText = `⚡ Çevrimdışı hafızadan (Cache) yükleniyor...`;
+                } else {
+                    // Hafızada yoksa internetten indir ve hafızaya kaydet
+                    downloadedFromNetwork = true;
+                    document.getElementById('networkStatus').innerText = `🌍 İnternetten indiriliyor (Sadece ilk girişte)...`;
+                    document.getElementById('networkStatus').style.color = "#f59e0b";
+                    
+                    response = await fetch(kitapListesi[i]);
+                    if (!response.ok) throw new Error(`${kitapListesi[i]} bulunamadı.`);
+                    
+                    // İndirilen dosyayı bir sonraki sefer için cache'e koy
+                    await cache.put(kitapListesi[i], response.clone());
+                }
                 
                 let arrayBuffer = await response.arrayBuffer();
                 let zip = await JSZip.loadAsync(arrayBuffer);
@@ -214,6 +204,8 @@
                     }
                 }
             }
+
+            document.getElementById('loadingStatus').innerText = `Metin Derleniyor...`;
 
             let rawWords = fullText.trim().split(/\s+/);
             wordsArray = rawWords.map((word, index) => {
@@ -234,7 +226,7 @@
                 document.getElementById('app').style.display = 'flex';
             }, 500);
 
-            document.getElementById('appStatus').innerText = `Tüm Külliyat Hazır`;
+            document.getElementById('appStatus').innerText = downloadedFromNetwork ? `Külliyat İndirildi` : `⚡ Offline Hazır`;
             document.getElementById('mainMicBtn').disabled = false;
 
         } catch (error) {
@@ -251,26 +243,19 @@
         document.getElementById('bookDisplay').style.fontSize = currentFontSize + 'px';
     }
 
-    // YENİ: Satır Aralığı Değiştirme Fonksiyonu
     function changeLineHeight(event) {
         event.stopPropagation();
-        // 3 kademe: 1.5 (Dar), 1.7 (Orta), 2.2 (Geniş)
         if (currentLineHeight === 1.7) currentLineHeight = 2.2;
         else if (currentLineHeight === 2.2) currentLineHeight = 1.4;
         else currentLineHeight = 1.7;
-        
         document.getElementById('bookDisplay').style.lineHeight = currentLineHeight;
     }
 
     document.addEventListener('click', function(event) {
-        if (isListening && !event.target.closest('#bottomPanel') && !event.target.closest('.font-controls')) {
-            stopListening();
-        }
+        if (isListening && !event.target.closest('#bottomPanel') && !event.target.closest('.font-controls')) stopListening();
     });
 
-    document.addEventListener('visibilitychange', function() {
-        if (document.hidden && isListening) stopListening();
-    });
+    document.addEventListener('visibilitychange', function() { if (document.hidden && isListening) stopListening(); });
 
     if ('webkitSpeechRecognition' in window) {
         recognition = new webkitSpeechRecognition();
@@ -296,26 +281,13 @@
             }
         };
 
-        recognition.onend = function() {
-            if (isListening) { try { recognition.start(); } catch(e){} }
-        };
+        recognition.onend = function() { if (isListening) { try { recognition.start(); } catch(e){} } };
     }
 
-    function toggleListening(event) {
-        event.stopPropagation(); 
-        if (isListening) stopListening();
-        else startListening();
-    }
-
-    function startListening() {
-        if (wordsArray.length === 0) return;
-        isListening = true;
-        try { recognition.start(); } catch(e){}
-    }
-
+    function toggleListening(event) { event.stopPropagation(); if (isListening) stopListening(); else startListening(); }
+    function startListening() { if (wordsArray.length === 0) return; isListening = true; try { recognition.start(); } catch(e){} }
     function stopListening() {
-        isListening = false;
-        recognition.stop();
+        isListening = false; recognition.stop();
         document.getElementById('mainMicBtn').className = "mic-btn idle";
         document.getElementById('appStatus').innerText = "Takip Duraklatıldı";
         document.getElementById('appStatus').style.color = "#ef4444";
@@ -328,28 +300,20 @@
                                     .split(/\s+/).filter(w => w.length >= 3);
         if (spokenWords.length < 2) return; 
 
-        let seq3 = spokenWords.slice(-3);
-        let seq2 = spokenWords.slice(-2);
-        
+        let seq3 = spokenWords.slice(-3); let seq2 = spokenWords.slice(-2);
         let foundIndex = searchSequence(seq3);
         if (foundIndex === -1) foundIndex = searchSequence(seq2);
 
-        if (foundIndex !== -1) {
-            currentIndex = foundIndex;
-            updateHighlight();
-        }
+        if (foundIndex !== -1) { currentIndex = foundIndex; updateHighlight(); }
     }
 
     function searchSequence(seqArray) {
         let match = findConsecutiveMatch(seqArray, currentIndex, Math.min(wordsArray.length, currentIndex + 50));
         if (match !== -1) return match;
-
         match = findConsecutiveMatch(seqArray, Math.max(0, currentIndex - 50), currentIndex);
         if (match !== -1) return match;
-
         match = findConsecutiveMatch(seqArray, Math.max(0, currentIndex - 500), Math.min(wordsArray.length, currentIndex + 500));
         if (match !== -1) return match;
-
         if (seqArray.length >= 3) return findConsecutiveMatch(seqArray, 0, wordsArray.length);
         return -1;
     }
@@ -358,9 +322,7 @@
         for (let i = startIndex; i <= endIndex - seqArray.length; i++) {
             let isFullMatch = true;
             for (let j = 0; j < seqArray.length; j++) {
-                if (!isMatch(wordsArray[i + j].clean, seqArray[j])) {
-                    isFullMatch = false; break; 
-                }
+                if (!isMatch(wordsArray[i + j].clean, seqArray[j])) { isFullMatch = false; break; }
             }
             if (isFullMatch) return i + seqArray.length - 1; 
         }
@@ -379,13 +341,10 @@
 
     function renderHTMLChunk(start, end) {
         let html = "";
-        for (let i = start; i < end; i++) {
-            html += `<span id="w-${i}">${wordsArray[i].original}</span> `;
-        }
+        for (let i = start; i < end; i++) { html += `<span id="w-${i}">${wordsArray[i].original}</span> `; }
         return html;
     }
 
-    // TİTREMEYEN/KAYMAYAN TAKİP (Görünüm Optimizasyonu)
     function updateHighlight() {
         if (currentIndex < renderedStart || currentIndex > renderedEnd - 100) {
             renderedStart = Math.max(0, currentIndex - 300);
@@ -405,9 +364,6 @@
         if (activeSpan) {
             let rect = activeSpan.getBoundingClientRect();
             let viewHeight = window.innerHeight;
-            
-            // YENİ: Sadece kelime ekranın en alt %30'luk kısmına veya en üstüne gelirse ekranı kaydırır.
-            // Bu sayede her kelimede ekran titremez/kaymaz, gözü yormaz.
             if (rect.top > viewHeight * 0.65 || rect.top < viewHeight * 0.25) {
                 activeSpan.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
