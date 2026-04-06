@@ -3,118 +3,175 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Külliyat Canlı Takip - Çevrimdışı Sürüm (PWA)</title>
+    <title>Külliyat Canlı Takip - e-Reader Sürümü</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     
     <style>
+        /* --- GERÇEK KİTAP TASARIMI (Sepya Modu) --- */
         :root {
-            --bg-dark: #0f172a;
-            --bg-panel: rgba(30, 41, 59, 0.85);
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --gold-primary: #f59e0b; 
-            --gold-glow: rgba(245, 158, 11, 0.3);
-            --danger: #ef4444;
+            --bg-book: #fbf0d9; /* Sayfa Sarısı */
+            --bg-panel: rgba(244, 236, 216, 0.95);
+            --text-main: #2c2825; /* Koyu Füme/Siyah */
+            --text-muted: #78716c;
+            --gold-primary: #d97706; /* Vurgu Rengi */
+            --danger: #dc2626;
+            --highlight-bg: rgba(217, 119, 6, 0.2);
+            --menu-bg: #2c2825;
+            --menu-text: #fbf0d9;
         }
 
         body {
-            font-family: 'Poppins', sans-serif; background-color: var(--bg-dark);
-            color: var(--text-main); margin: 0; padding: 0;
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-book);
+            color: var(--text-main);
+            margin: 0; padding: 0;
             height: 100vh; overflow: hidden; display: flex; flex-direction: column;
         }
 
-        .top-info-bar {
-            flex-shrink: 0; width: 100%; background: rgba(0, 0, 0, 0.4); display: flex; justify-content: space-between;
-            align-items: center; padding: 4px 15px; font-size: 11px; color: var(--text-muted);
-            box-sizing: border-box; z-index: 50;
-        }
-        
-        .top-info-bar .version { font-family: monospace; opacity: 0.7; color: var(--gold-primary); font-weight: bold;}
-        .top-info-bar .live-users { display: flex; align-items: center; gap: 5px; opacity: 0.8; }
-        .live-dot {
-            width: 6px; height: 6px; background-color: #10b981; border-radius: 50%; display: inline-block;
-            box-shadow: 0 0 5px #10b981; animation: pulse-dot 2s infinite;
-        }
-
-        @keyframes pulse-dot { 0% { opacity: 0.5; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } 100% { opacity: 0.5; transform: scale(0.8); } }
-
+        /* --- LOADER --- */
         #loadingOverlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--bg-dark); display: flex; flex-direction: column; justify-content: center; align-items: center;
-            z-index: 1000; transition: opacity 0.5s ease-out;
+            background: var(--bg-book); display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 1000; transition: opacity 0.5s;
         }
-
-        .spinner { width: 60px; height: 60px; border: 3px solid rgba(255, 255, 255, 0.05); border-top: 3px solid var(--gold-primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+        .spinner { width: 60px; height: 60px; border: 3px solid rgba(0, 0, 0, 0.05); border-top: 3px solid var(--gold-primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
         #loadingStatus { font-size: 15px; color: var(--gold-primary); font-weight: 500; text-align: center; }
-        #networkStatus { font-size: 12px; color: #10b981; margin-top: 10px; opacity: 0.8; }
-
         @keyframes spin { 100% { transform: rotate(360deg); } }
 
+        /* --- ÜST BİLGİ VE HEADER --- */
         #app { display: none; flex-direction: column; height: 100%; overflow: hidden; }
 
         header {
-            flex-shrink: 0; background: var(--bg-panel); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-            padding: 10px 20px; display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05); z-index: 10;
+            flex-shrink: 0; background: var(--bg-panel); backdrop-filter: blur(10px);
+            padding: 10px 15px; display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05); z-index: 10; box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
 
-        .header-title h2 { margin: 0; font-size: 18px; font-weight: 600; }
-        .header-title span { font-size: 11px; color: #10b981; font-weight: 500; }
+        .header-left { display: flex; align-items: center; gap: 15px; }
+        
+        /* Menü Butonu */
+        .menu-btn {
+            background: none; border: none; font-size: 28px; color: var(--text-main);
+            cursor: pointer; padding: 0; line-height: 1; transition: 0.2s;
+        }
+        .menu-btn:hover { color: var(--gold-primary); }
+
+        .header-title h2 { margin: 0; font-size: 16px; font-weight: 600; color: var(--text-main);}
+        #currentLocationText { font-size: 12px; color: var(--gold-primary); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px;}
 
         .font-controls { display: flex; gap: 8px; }
         .font-btn {
-            background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255,255,255,0.1);
-            color: #fff; width: 35px; height: 35px; border-radius: 8px;
+            background: rgba(0, 0, 0, 0.05); border: 1px solid rgba(0,0,0,0.1);
+            color: var(--text-main); width: 35px; height: 35px; border-radius: 8px;
             font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s;
         }
-        .font-btn:hover { background: var(--gold-primary); color: #000; }
+        .font-btn:hover { background: var(--gold-primary); color: #fff; border-color: var(--gold-primary); }
 
-        #bookDisplay {
-            flex: 1; overflow-y: auto; padding: 20px 8% 150px 8%; 
-            font-family: 'Lora', serif; font-size: 24px; line-height: 1.7; scroll-behavior: smooth;
+        /* --- HİYERARŞİK KÜTÜPHANE MENÜSÜ (SIDEBAR) --- */
+        #sidebar {
+            position: fixed; top: 0; left: -320px; width: 300px; height: 100%;
+            background: var(--menu-bg); color: var(--menu-text); z-index: 2000;
+            transition: left 0.3s ease; box-shadow: 5px 0 15px rgba(0,0,0,0.3);
+            display: flex; flex-direction: column;
         }
-        #bookDisplay::-webkit-scrollbar { width: 5px; }
-        #bookDisplay::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
-        #bookDisplay span { transition: color 0.2s, background 0.2s; border-radius: 4px; padding: 2px; }
-        .read-text { color: var(--text-muted); }
-        .active-word { background-color: var(--gold-glow); color: var(--gold-primary); font-weight: 600; border-bottom: 2px solid var(--gold-primary); }
+        #sidebar.open { left: 0; }
+        .sidebar-header {
+            padding: 20px; display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .sidebar-header h3 { margin: 0; font-size: 18px; color: var(--gold-primary); }
+        .close-menu { background: none; border: none; color: #fff; font-size: 24px; cursor: pointer; }
+        .sidebar-content { flex: 1; overflow-y: auto; padding: 10px; }
+        
+        /* Akordeon Kitap Listesi */
+        details { margin-bottom: 5px; background: rgba(255,255,255,0.05); border-radius: 5px; }
+        summary { padding: 12px; font-weight: 500; cursor: pointer; list-style: none; display: flex; justify-content: space-between;}
+        summary::-webkit-details-marker { display: none; }
+        summary::after { content: '▼'; font-size: 10px; margin-top: 5px; color: var(--gold-primary);}
+        details[open] summary::after { content: '▲'; }
+        .chapter-list { list-style: none; padding: 0; margin: 0; }
+        .chapter-list li { padding: 10px 10px 10px 25px; border-top: 1px solid rgba(255,255,255,0.05); font-size: 14px; cursor: pointer; color: #d6d3d1; transition: 0.2s;}
+        .chapter-list li:hover { background: rgba(217, 119, 6, 0.2); color: #fff; }
 
+        #sidebarOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 1999; display: none;
+        }
+
+        /* --- KİTAP METNİ ALANI (Paragraflı) --- */
+        #bookDisplay {
+            flex: 1; overflow-y: auto; 
+            padding: 30px 8% 180px 8%; 
+            font-family: 'Lora', serif; font-size: 26px; line-height: 1.8; 
+            scroll-behavior: smooth; text-align: justify;
+        }
+
+        #bookDisplay::-webkit-scrollbar { width: 6px; }
+        #bookDisplay::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 10px; }
+
+        /* Paragraf Başlangıç Boşluğu */
+        .para-start { display: inline-block; width: 2em; }
+        /* Paragraf Arası Boşluk */
+        .para-break { display: block; height: 0.8em; content: " "; }
+
+        #bookDisplay span { transition: color 0.2s, background 0.2s; border-radius: 4px; padding: 1px; }
+        .read-text { color: var(--text-muted); }
+        .active-word {
+            background-color: var(--highlight-bg); color: var(--gold-primary);
+            font-weight: bold; border-bottom: 2px solid var(--gold-primary);
+        }
+
+        /* --- ALT KONTROLLER --- */
         .bottom-panel {
             position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
             width: 90%; max-width: 500px; background: var(--bg-panel);
             backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-            border: 1px solid rgba(255,255,255,0.1); border-radius: 20px;
+            border: 1px solid rgba(0,0,0,0.1); border-radius: 20px;
             display: flex; align-items: center; justify-content: space-between;
-            padding: 8px 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); z-index: 20;
+            padding: 8px 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); z-index: 20;
         }
-        #debugBox { flex: 1; color: var(--gold-primary); font-family: monospace; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 15px; }
-        .mic-btn { width: 50px; height: 50px; border-radius: 50%; border: none; cursor: pointer; font-size: 20px; transition: all 0.3s; flex-shrink: 0; }
-        .mic-btn.idle { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); }
-        .mic-btn.listening { background: var(--danger); color: #fff; box-shadow: 0 0 15px rgba(239, 68, 68, 0.6); animation: pulse 1.5s infinite; }
+        #debugBox { flex: 1; color: var(--text-main); font-family: monospace; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 15px; opacity: 0.8;}
+        
+        .mic-btn { width: 50px; height: 50px; border-radius: 50%; border: none; cursor: pointer; font-size: 20px; transition: all 0.3s; flex-shrink: 0; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .mic-btn.idle { background: var(--text-main); color: var(--bg-book); }
+        .mic-btn.listening { background: var(--danger); color: #fff; box-shadow: 0 0 15px rgba(220, 38, 38, 0.6); animation: pulse 1.5s infinite; }
 
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.5); } 70% { box-shadow: 0 0 0 10px rgba(220, 38, 38, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); } }
+
+        @media (max-width: 768px) {
+            #bookDisplay { padding: 20px 5% 150px 5%; font-size: 22px; }
+            .bottom-panel { width: 85%; }
+            #currentLocationText { max-width: 120px; }
+        }
     </style>
 </head>
 <body>
 
-<div class="top-info-bar">
-    <div class="version">v2.0.0 (Offline)</div>
-    <div class="live-users"><span class="live-dot"></span> <span id="liveCounterText">1 Çevrimiçi</span></div>
-</div>
-
 <div id="loadingOverlay">
     <div class="spinner"></div>
-    <div id="loadingStatus">Sistem Başlatılıyor...</div>
-    <div id="networkStatus">Veriler kontrol ediliyor...</div>
+    <div id="loadingStatus">Külliyat Düzenleniyor...</div>
+</div>
+
+<div id="sidebarOverlay" onclick="toggleMenu()"></div>
+<div id="sidebar">
+    <div class="sidebar-header">
+        <h3>📚 Kütüphane</h3>
+        <button class="close-menu" onclick="toggleMenu()">✖</button>
+    </div>
+    <div class="sidebar-content" id="libraryMenu">
+        </div>
 </div>
 
 <div id="app">
     <header>
-        <div class="header-title">
-            <h2>Külliyat Takip</h2>
-            <span id="appStatus">Bağlanıyor...</span>
+        <div class="header-left">
+            <button class="menu-btn" onclick="toggleMenu()">☰</button>
+            <div class="header-title">
+                <h2>Külliyat Takip</h2>
+                <div id="currentLocationText">Kitap Seçin</div>
+            </div>
         </div>
         <div class="font-controls">
             <button class="font-btn" onclick="changeLineHeight(event)" title="Satır Aralığı">↕</button>
@@ -141,169 +198,239 @@
         'Sozler.epub', 'AsarEnvarHD.epub', 'TarihceDuzeltilmis.epub'
     ]; 
     
-    const CACHE_NAME = 'kulliyat-kitaplar-v1'; // PWA Cache Adı
-    
     let isListening = false; let recognition; let wordsArray = [];
+    let libraryData = []; // Menü oluşturmak için kitap/bölüm hiyerarşisi
     let currentIndex = 0; let renderedStart = 0; let renderedEnd = 0;
-    const CHUNK_SIZE = 1000;
-    let currentFontSize = 24; let currentLineHeight = 1.7;
+    const CHUNK_SIZE = 800;
+    let currentFontSize = 26; let currentLineHeight = 1.8;
 
-    function startLiveUserSimulation() {
-        const counterText = document.getElementById('liveCounterText');
-        let currentUsers = Math.floor(Math.random() * 5) + 2;
-        counterText.innerText = `${currentUsers} Çevrimiçi`;
-        setInterval(() => {
-            if(Math.random() > 0.5) {
-                currentUsers += (Math.random() > 0.5 ? 1 : -1);
-                if (currentUsers < 1) currentUsers = 1;
-                counterText.innerText = `${currentUsers} Çevrimiçi`;
-            }
-        }, 12000);
+    // --- MENÜ KONTROLÜ ---
+    function toggleMenu() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        if(sidebar.classList.contains('open')) {
+            sidebar.classList.remove('open');
+            overlay.style.display = 'none';
+        } else {
+            sidebar.classList.add('open');
+            overlay.style.display = 'block';
+        }
     }
 
-    // --- YENİ: CACHE (BELLEK) ENTEGRASYONLU YÜKLEME ---
+    // Seçilen bölüme zıpla
+    function goToChapter(index) {
+        currentIndex = index;
+        updateHighlight(true); // Ekrani sıfırla ve oraya git
+        toggleMenu(); // Menüyü kapat
+    }
+
+    // --- GERÇEK EPUB VE PARAGRAF AYRIŞTIRICISI ---
     window.onload = async function() {
-        startLiveUserSimulation();
-        let fullText = "";
-        
         try {
-            // Tarayıcının hafıza bankasını açıyoruz
-            const cache = await caches.open(CACHE_NAME);
-            let downloadedFromNetwork = false;
+            let globalWordIndex = 0;
 
             for (let i = 0; i < kitapListesi.length; i++) {
-                document.getElementById('loadingStatus').innerText = `İşleniyor: ${i + 1}/${kitapListesi.length}`;
+                let bookName = kitapListesi[i].replace('.epub', '').replace(/Duzeltilmis/g, '').replace(/_/g, ' ');
+                document.getElementById('loadingStatus').innerText = `Kitap ${i + 1}/${kitapListesi.length} İşleniyor...\n${bookName}`;
                 
-                // Önce Hafızaya (Cache) Bak
-                let response = await cache.match(kitapListesi[i]);
-                
-                if (response) {
-                    document.getElementById('networkStatus').innerText = `⚡ Çevrimdışı hafızadan (Cache) yükleniyor...`;
-                } else {
-                    // Hafızada yoksa internetten indir ve hafızaya kaydet
-                    downloadedFromNetwork = true;
-                    document.getElementById('networkStatus').innerText = `🌍 İnternetten indiriliyor (Sadece ilk girişte)...`;
-                    document.getElementById('networkStatus').style.color = "#f59e0b";
-                    
-                    response = await fetch(kitapListesi[i]);
-                    if (!response.ok) throw new Error(`${kitapListesi[i]} bulunamadı.`);
-                    
-                    // İndirilen dosyayı bir sonraki sefer için cache'e koy
-                    await cache.put(kitapListesi[i], response.clone());
-                }
-                
+                let response = await fetch(kitapListesi[i]);
+                if (!response.ok) continue;
                 let arrayBuffer = await response.arrayBuffer();
                 let zip = await JSZip.loadAsync(arrayBuffer);
                 
-                for (let filename of Object.keys(zip.files)) {
-                    if (filename.endsWith('.html') || filename.endsWith('.xhtml') || filename.endsWith('.htm')) {
-                        let htmlData = await zip.files[filename].async("string");
-                        let parser = new DOMParser();
-                        let doc = parser.parseFromString(htmlData, 'text/html');
-                        fullText += doc.body.textContent + " ";
+                let bookObj = { title: bookName, chapters: [] };
+
+                // 1. OPF Dosyasını Bul (Kitabın omurgası/okuma sırası)
+                let containerFile = await zip.file("META-INF/container.xml").async("string");
+                let opfPath = containerFile.match(/full-path="([^"]+)"/)[1];
+                let opfBase = opfPath.substring(0, opfPath.lastIndexOf('/') + 1);
+                let opfStr = await zip.file(opfPath).async("string");
+                let opfDoc = new DOMParser().parseFromString(opfStr, "text/xml");
+
+                // 2. Dosya yollarını haritala
+                let manifest = {};
+                Array.from(opfDoc.getElementsByTagName("item")).forEach(item => {
+                    manifest[item.getAttribute("id")] = item.getAttribute("href");
+                });
+
+                // 3. Okuma Sırasını (Spine) Çıkar
+                let spineFiles = [];
+                Array.from(opfDoc.getElementsByTagName("itemref")).forEach(itemref => {
+                    let idref = itemref.getAttribute("idref");
+                    if(manifest[idref]) spineFiles.push(opfBase + manifest[idref]);
+                });
+
+                // 4. Dosyaları sırayla oku ve paragrafları koru
+                for (let htmlPath of spineFiles) {
+                    if (!htmlPath.match(/\.(html|xhtml|htm)$/i)) continue;
+                    let fileObj = zip.file(htmlPath) || zip.file(decodeURIComponent(htmlPath));
+                    if (!fileObj) continue;
+
+                    let htmlData = await fileObj.async("string");
+                    let doc = new DOMParser().parseFromString(htmlData, 'text/html');
+
+                    // Bölüm Başlığını Bul (Title veya H1)
+                    let chapterTitle = "Bölüm";
+                    let titleTag = doc.querySelector('title');
+                    let hTag = doc.querySelector('h1, h2, h3');
+                    if(titleTag && titleTag.innerText.trim()) chapterTitle = titleTag.innerText.trim();
+                    else if(hTag && hTag.innerText.trim()) chapterTitle = hTag.innerText.trim();
+
+                    // Menü için kaydet (Sadece içi boş olmayan dosyaları ekle)
+                    let chapterStartIndex = globalWordIndex;
+
+                    // METNİ PARAGRAFLARA BÖLEREK ÇEK (DOM TreeWalker Mantığı)
+                    // div, p, h1, li gibi tüm blok elemanları tarar.
+                    let blocks = doc.querySelectorAll('p, h1, h2, h3, h4, div, li, blockquote');
+                    if(blocks.length === 0) blocks = [doc.body];
+
+                    let wordsAddedInChapter = 0;
+
+                    blocks.forEach(block => {
+                        // Sadece o bloğa ait kendi metnini al (İçindeki diğer divleri çift kopyalamamak için)
+                        let text = Array.from(block.childNodes)
+                            .filter(node => node.nodeType === Node.TEXT_NODE)
+                            .map(node => node.textContent)
+                            .join(' ').trim();
+                        
+                        if(!text) return;
+
+                        let rawWords = text.split(/\s+/);
+                        for(let w = 0; w < rawWords.length; w++) {
+                            let word = rawWords[w];
+                            let cleanWord = word.toLocaleLowerCase('tr-TR').replace(/â/g, 'a').replace(/î/g, 'i').replace(/û/g, 'u').replace(/['"()\[\]{}.,!?;:\-\–\—]/g, "");
+                            if(!cleanWord && !word) continue;
+
+                            wordsArray.push({
+                                original: word,
+                                clean: cleanWord,
+                                id: globalWordIndex,
+                                book: bookName,
+                                chapter: chapterTitle,
+                                isParaStart: (w === 0), // Paragrafın ilk kelimesi mi?
+                                isParaEnd: (w === rawWords.length - 1) // Son kelimesi mi?
+                            });
+                            globalWordIndex++;
+                            wordsAddedInChapter++;
+                        }
+                    });
+
+                    // Eğer bu html dosyasında kelime varsa menüye ekle
+                    if(wordsAddedInChapter > 0) {
+                        bookObj.chapters.push({ title: chapterTitle, startIndex: chapterStartIndex });
                     }
                 }
+                
+                if(bookObj.chapters.length > 0) libraryData.push(bookObj);
             }
 
-            document.getElementById('loadingStatus').innerText = `Metin Derleniyor...`;
-
-            let rawWords = fullText.trim().split(/\s+/);
-            wordsArray = rawWords.map((word, index) => {
-                let cleanWord = word.toLocaleLowerCase('tr-TR')
-                                    .replace(/â/g, 'a').replace(/î/g, 'i').replace(/û/g, 'u')
-                                    .replace(/['"()\[\]{}.,!?;:\-\–\—]/g, "");
-                return { original: word, clean: cleanWord, id: index };
-            }).filter(w => w.clean.length > 0 || w.original.length > 0);
+            // Kütüphane Menüsünü HTML olarak oluştur
+            buildLibraryMenu();
 
             renderedStart = 0;
-            renderedEnd = Math.min(wordsArray.length, 1500);
+            renderedEnd = Math.min(wordsArray.length, 1000);
             document.getElementById('bookDisplay').innerHTML = renderHTMLChunk(renderedStart, renderedEnd);
 
             const overlay = document.getElementById('loadingOverlay');
             overlay.style.opacity = '0';
-            setTimeout(() => {
-                overlay.style.display = 'none';
-                document.getElementById('app').style.display = 'flex';
-            }, 500);
-
-            document.getElementById('appStatus').innerText = downloadedFromNetwork ? `Külliyat İndirildi` : `⚡ Offline Hazır`;
+            setTimeout(() => { overlay.style.display = 'none'; document.getElementById('app').style.display = 'flex'; }, 500);
+            
             document.getElementById('mainMicBtn').disabled = false;
+            updateLocationInfo(); // Header'ı güncelle
 
         } catch (error) {
             document.getElementById('loadingStatus').innerText = `Hata: ${error.message}`;
-            document.getElementById('loadingStatus').style.color = "#ef4444";
         }
     };
 
+    // --- MENÜYÜ ÇİZ ---
+    function buildLibraryMenu() {
+        let menuHtml = '';
+        libraryData.forEach((book, bIndex) => {
+            menuHtml += `<details><summary>${book.title}</summary><ul class="chapter-list">`;
+            book.chapters.forEach(chap => {
+                // Çok uzun başlıkları kısalt
+                let displayTitle = chap.title.length > 40 ? chap.title.substring(0, 40) + '...' : chap.title;
+                menuHtml += `<li onclick="goToChapter(${chap.startIndex})">${displayTitle}</li>`;
+            });
+            menuHtml += `</ul></details>`;
+        });
+        document.getElementById('libraryMenu').innerHTML = menuHtml;
+    }
+
+    // --- EKRAN ÇİZİMİ (Paragraf Boşlukları Eklendi) ---
+    function renderHTMLChunk(start, end) {
+        let html = "";
+        for (let i = start; i < end; i++) {
+            let w = wordsArray[i];
+            // Eğer kelime paragrafın başıysa, başına satır atlama ve boşluk ekle
+            if (w.isParaStart && i !== start) {
+                html += `<span class="para-break"></span><span class="para-start"></span>`;
+            } else if (i === start) {
+                html += `<span class="para-start"></span>`;
+            }
+            html += `<span id="w-${i}">${w.original}</span> `;
+        }
+        return html;
+    }
+
+    // --- HEADER BİLGİ GÜNCELLEMESİ ---
+    function updateLocationInfo() {
+        if(wordsArray.length === 0) return;
+        let currentWord = wordsArray[currentIndex];
+        // "Sözler > Birinci Söz"
+        document.getElementById('currentLocationText').innerText = `${currentWord.book} > ${currentWord.chapter}`;
+    }
+
+    // UI Controls
     function changeFontSize(change, event) {
-        event.stopPropagation(); 
-        currentFontSize += change;
-        if(currentFontSize < 16) currentFontSize = 16;
-        if(currentFontSize > 50) currentFontSize = 50;
+        event.stopPropagation(); currentFontSize += change;
+        if(currentFontSize < 16) currentFontSize = 16; if(currentFontSize > 40) currentFontSize = 40;
         document.getElementById('bookDisplay').style.fontSize = currentFontSize + 'px';
+        let activeSpan = document.getElementById('w-' + currentIndex);
+        if (activeSpan) activeSpan.scrollIntoView({ behavior: 'auto', block: 'center' });
     }
 
     function changeLineHeight(event) {
         event.stopPropagation();
-        if (currentLineHeight === 1.7) currentLineHeight = 2.2;
-        else if (currentLineHeight === 2.2) currentLineHeight = 1.4;
-        else currentLineHeight = 1.7;
+        if (currentLineHeight === 1.8) currentLineHeight = 2.4;
+        else if (currentLineHeight === 2.4) currentLineHeight = 1.4;
+        else currentLineHeight = 1.8;
         document.getElementById('bookDisplay').style.lineHeight = currentLineHeight;
     }
 
     document.addEventListener('click', function(event) {
-        if (isListening && !event.target.closest('#bottomPanel') && !event.target.closest('.font-controls')) stopListening();
+        if (isListening && !event.target.closest('#bottomPanel') && !event.target.closest('.font-controls') && !event.target.closest('#sidebar') && !event.target.closest('.header-left')) stopListening();
     });
-
-    document.addEventListener('visibilitychange', function() { if (document.hidden && isListening) stopListening(); });
 
     if ('webkitSpeechRecognition' in window) {
         recognition = new webkitSpeechRecognition();
-        recognition.continuous = true;
-        recognition.interimResults = true;
-        recognition.lang = 'tr-TR';
-
+        recognition.continuous = true; recognition.interimResults = true; recognition.lang = 'tr-TR';
         recognition.onstart = function() {
-            isListening = true;
-            document.getElementById('mainMicBtn').className = "mic-btn listening";
-            document.getElementById('appStatus').innerText = "Dinleniyor...";
-            document.getElementById('appStatus').style.color = "#f59e0b";
+            isListening = true; document.getElementById('mainMicBtn').className = "mic-btn listening";
+            document.getElementById('debugBox').innerText = "Dinleniyor...";
         };
-
         recognition.onresult = function(event) {
             let currentTranscript = '';
-            for (let i = event.resultIndex; i < event.results.length; ++i) {
-                currentTranscript += event.results[i][0].transcript;
-            }
+            for (let i = event.resultIndex; i < event.results.length; ++i) currentTranscript += event.results[i][0].transcript;
             if (currentTranscript.trim() !== "") {
                 document.getElementById('debugBox').innerText = currentTranscript;
                 processSpeech(currentTranscript);
             }
         };
-
         recognition.onend = function() { if (isListening) { try { recognition.start(); } catch(e){} } };
     }
 
     function toggleListening(event) { event.stopPropagation(); if (isListening) stopListening(); else startListening(); }
     function startListening() { if (wordsArray.length === 0) return; isListening = true; try { recognition.start(); } catch(e){} }
-    function stopListening() {
-        isListening = false; recognition.stop();
-        document.getElementById('mainMicBtn').className = "mic-btn idle";
-        document.getElementById('appStatus').innerText = "Takip Duraklatıldı";
-        document.getElementById('appStatus').style.color = "#ef4444";
-    }
+    function stopListening() { isListening = false; recognition.stop(); document.getElementById('mainMicBtn').className = "mic-btn idle"; document.getElementById('debugBox').innerText = "Takip Duraklatıldı."; }
 
     function processSpeech(transcript) {
-        let spokenWords = transcript.toLocaleLowerCase('tr-TR')
-                                    .replace(/â/g, 'a').replace(/î/g, 'i').replace(/û/g, 'u')
-                                    .replace(/['"()\[\]{}.,!?;:\-\–\—]/g, "")
-                                    .split(/\s+/).filter(w => w.length >= 3);
+        let spokenWords = transcript.toLocaleLowerCase('tr-TR').replace(/â/g, 'a').replace(/î/g, 'i').replace(/û/g, 'u').replace(/['"()\[\]{}.,!?;:\-\–\—]/g, "").split(/\s+/).filter(w => w.length >= 3);
         if (spokenWords.length < 2) return; 
-
         let seq3 = spokenWords.slice(-3); let seq2 = spokenWords.slice(-2);
         let foundIndex = searchSequence(seq3);
         if (foundIndex === -1) foundIndex = searchSequence(seq2);
-
         if (foundIndex !== -1) { currentIndex = foundIndex; updateHighlight(); }
     }
 
@@ -321,9 +448,7 @@
     function findConsecutiveMatch(seqArray, startIndex, endIndex) {
         for (let i = startIndex; i <= endIndex - seqArray.length; i++) {
             let isFullMatch = true;
-            for (let j = 0; j < seqArray.length; j++) {
-                if (!isMatch(wordsArray[i + j].clean, seqArray[j])) { isFullMatch = false; break; }
-            }
+            for (let j = 0; j < seqArray.length; j++) { if (!isMatch(wordsArray[i + j].clean, seqArray[j])) { isFullMatch = false; break; } }
             if (isFullMatch) return i + seqArray.length - 1; 
         }
         return -1;
@@ -339,16 +464,28 @@
         return false;
     }
 
-    function renderHTMLChunk(start, end) {
-        let html = "";
-        for (let i = start; i < end; i++) { html += `<span id="w-${i}">${wordsArray[i].original}</span> `; }
-        return html;
-    }
+    const displayDiv = document.getElementById('bookDisplay');
+    displayDiv.addEventListener('scroll', function() {
+        if (this.scrollTop + this.clientHeight >= this.scrollHeight - 100) {
+            if (renderedEnd < wordsArray.length) {
+                let nextEnd = Math.min(wordsArray.length, renderedEnd + CHUNK_SIZE);
+                this.insertAdjacentHTML('beforeend', renderHTMLChunk(renderedEnd, nextEnd));
+                renderedEnd = nextEnd;
+            }
+        }
+        if (this.scrollTop === 0 && renderedStart > 0) {
+            let nextStart = Math.max(0, renderedStart - CHUNK_SIZE);
+            this.insertAdjacentHTML('afterbegin', renderHTMLChunk(nextStart, renderedStart));
+            renderedStart = nextStart;
+            this.scrollTop = 50; 
+        }
+    });
 
-    function updateHighlight() {
-        if (currentIndex < renderedStart || currentIndex > renderedEnd - 100) {
-            renderedStart = Math.max(0, currentIndex - 300);
-            renderedEnd = Math.min(wordsArray.length, currentIndex + 1000);
+    function updateHighlight(forceReRender = false) {
+        // Eğer menüden çok uzak bir bölüme tıklandıysa DOM'u sıfırla ve baştan çiz
+        if (forceReRender || currentIndex < renderedStart || currentIndex > renderedEnd - 100) {
+            renderedStart = Math.max(0, currentIndex - 100);
+            renderedEnd = Math.min(wordsArray.length, currentIndex + parseInt(CHUNK_SIZE));
             document.getElementById('bookDisplay').innerHTML = renderHTMLChunk(renderedStart, renderedEnd);
         }
 
@@ -360,11 +497,13 @@
             else span.className = ''; 
         }
 
+        updateLocationInfo(); // Her kelimede bölüm başlığını kontrol et
+
         let activeSpan = document.getElementById('w-' + currentIndex);
         if (activeSpan) {
             let rect = activeSpan.getBoundingClientRect();
             let viewHeight = window.innerHeight;
-            if (rect.top > viewHeight * 0.65 || rect.top < viewHeight * 0.25) {
+            if (forceReRender || rect.top > viewHeight * 0.65 || rect.top < viewHeight * 0.25) {
                 activeSpan.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         }
